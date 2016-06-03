@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script type="text/javascript" src="jquery-2.1.4.min.js"></script>
+	<script type="text/javascript">
+		document.addEventListener('DOMContentLoaded',function() {
+
+			document.getElementById('boton').addEventListener('click',function(){
+				if(! ('Notification' in window) ){
+					alert("Servicio no disponible para tu dispositivo.");
+					return;
+				}
+				Notification.requestPermission(function(permission){	
+					var notification = new Notification("Alumno agregado",
+						{
+							body:"Has agregado a  un hola mundo",
+							icon:'icon.png',
+							
+						});
+
+					setTimeout(function(){
+						notification.close();
+					},5000);
+					
+				});
+			});
+		});
+
+
+	</script>
+</head>
+<body>
+	<input type="button" class="btn" id="boton" value="Guardar">
+</body>
+</html>

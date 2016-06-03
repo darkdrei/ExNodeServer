@@ -1,0 +1,19 @@
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script>
+  var socket = io('http://127.0.0.1:3000');
+  socket.emit('hola', {'web_id': '123456', 'cell_id': 'Hola mundo','carai':socket.id});
+  socket.on('respuesta',function(data){console.log(data);});
+  function send(){
+  	var web_id = document.getElementById("web_id").value;
+  	var cell_id = document.getElementById("cell_id").value;
+  	socket.emit('ionic-qr', {'web_id': web_id, 'cell_id': cell_id,'socket':socket.id});	
+  }  
+</script>
+
+<p>
+WEB_ID(QR): <input id="web_id" type="text" />
+</p>
+<p>
+CELL_ID: <input id="cell_id" type="text" />
+</p>
+<button onclick="send()">SEND</button>
