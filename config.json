@@ -1,0 +1,11 @@
+{
+	"express": {
+		"port"     : 5432
+	},
+	"postgres": {
+		"db"       : "express2",
+		"user"     : "postgres",
+		"password" : "Exile*74522547",
+		"host"     : "104.236.33.228"
+	}
+}

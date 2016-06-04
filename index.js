@@ -1,8 +1,11 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
+var db = require('pg');
+var config = require('./config.json');
+var connectionString = "postgres://"+config.postgres.user+":"+config.postgres.password+"@"+config.postgres.host+"/"+config.postgres.db;
 var clients = {};
+var motorizados = {};
 
 io.on('connection', function(socket) {
   socket.on('i-am', function(type) {
@@ -19,8 +22,9 @@ io.on('connection', function(socket) {
         io.to(msg.web_id).emit('ionic-qr', msg.cell_id);
 		  });
       socket.on('cell-active', function(msg) {
-        console.log(msg);
         clients[socket.id].cell_id = msg.cell_id
+        motorizados[msg.cell_id] = socket.id;
+        console.log('cell-active', motorizados);
       });
 		  socket.on('send-gps', function(msg){
   			console.log('GPS:');
@@ -44,11 +48,12 @@ io.on('connection', function(socket) {
 
   socket.on('add-pedido', function(data) {
     console.log(data);
-    for (var i in clients){
+    notify_pedido(data);
+    /*for (var i in clients){
       if (clients[i].type == 'CELL'){
         io.to(i).emit('notify-pedido', data);
       }
-    }
+    }*/
   });
 });
 
@@ -73,3 +78,19 @@ app.get('/cell', function(req, res){
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
+
+
+function notify_pedido(data){
+  db.connect(connectionString, function(err, client, done) {
+    if(err) {
+      return console.error('error fetching client from pool', err);
+    }
+    client.query('select * from domicilios_empleado where empresa_id=$1 and cargo=$2', [data.empresa_id,'MOTORIZADO'], function(err, result){
+      done();
+      if(err) {
+        return console.error('error running query', err);
+      }
+      console.log(result);
+    });
+  });
+}
