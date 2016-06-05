@@ -48,12 +48,12 @@ io.on('connection', function(socket) {
 
   socket.on('add-pedido', function(data) {
     console.log(data);
-    notify_pedido(data);
-    /*for (var i in clients){
+    //notify_pedido(data);
+    for (var i in clients){
       if (clients[i].type == 'CELL'){
         io.to(i).emit('notify-pedido', data);
       }
-    }*/
+    }
   });
 });
 
