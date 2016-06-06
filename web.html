@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="jquery.qrcode.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkEwq_DBXFsYc2BzYZ3TNsWHn19kxZ2HM&callback=initMap" async defer></script>
 	<script>
-		var socket = io();
+		socket = io();
 		var marker = null;
 		var map;
 		socket.emit('i-am', 'WEB');

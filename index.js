@@ -6,6 +6,7 @@ var config = require('./config.json');
 var connectionString = "postgres://"+config.postgres.user+":"+config.postgres.password+"@"+config.postgres.host+"/"+config.postgres.db;
 var clients = {};
 var motorizados = {};
+var pedidos_pendientes = [];
 
 io.on('connection', function(socket) {
   socket.on('i-am', function(type) {
@@ -25,6 +26,7 @@ io.on('connection', function(socket) {
         clients[socket.id].cell_id = msg.cell_id
         motorizados[msg.cell_id] = socket.id;
         console.log('cell-active', motorizados);
+        io.to(socket.id).emit('list-pedidos', pedidos_pendientes);
       });
 		  socket.on('send-gps', function(msg){
   			console.log('GPS:');
@@ -47,8 +49,7 @@ io.on('connection', function(socket) {
 
 
   socket.on('add-pedido', function(data) {
-    console.log(data);
-    //notify_pedido(data);
+    pedidos_pendientes.push(data);
     for (var i in clients){
       if (clients[i].type == 'CELL'){
         io.to(i).emit('notify-pedido', data);
