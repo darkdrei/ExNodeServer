@@ -50,6 +50,7 @@ io.on('connection', function(socket) {
 
   socket.on('add-pedido', function(data) {
     pedidos_pendientes.push(data);
+    delay_pedido(data);
     for (var i in clients){
       if (clients[i].type == 'CELL'){
         io.to(i).emit('notify-pedido', data);
@@ -81,17 +82,18 @@ http.listen(3000, function(){
 });
 
 
-function notify_pedido(data){
-  db.connect(connectionString, function(err, client, done) {
-    if(err) {
-      return console.error('error fetching client from pool', err);
+function delay_pedido(data){
+  setTimeout(function(){
+    var index = pedidos_pendientes.indexOf(data);
+    if (index > -1) {
+      delete pedidos_pendientes[index];
+      pedidos_pendientes.splice(index, 1);
     }
-    client.query('select * from domicilios_empleado where empresa_id=$1 and cargo=$2', [data.empresa_id,'MOTORIZADO'], function(err, result){
-      done();
-      if(err) {
-        return console.error('error running query', err);
+    console.log("pedido eliminado ", data);
+    for (var i in clients){
+      if (clients[i].type == 'CELL'){
+       io.to(i).emit('delete-pedido', data);
       }
-      console.log(result);
-    });
-  });
+    }
+  }, data.time);
 }
