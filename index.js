@@ -28,6 +28,19 @@ io.on('connection', function(socket) {
         console.log('cell-active', motorizados);
         io.to(socket.id).emit('list-pedidos', pedidos_pendientes);
       });
+      socket.on('accept-pedido', function(msg) {
+        var index = pedidos_pendientes.findIndex(function(pedido){
+          return pedido.id == msg.pedido_id;
+        });
+        console.log('accept-pedido', msg, index, pedidos_pendientes[index]);
+        for (var i in clients){
+          if (clients[i].type == 'CELL' && socket.id != i){
+           io.to(i).emit('delete-pedido', pedidos_pendientes[index]);
+          }
+        }
+        delete pedidos_pendientes[index];
+        pedidos_pendientes.splice(index, 1);
+      });
 		  socket.on('send-gps', function(msg){
   			console.log('GPS:');
   			console.log(msg);
@@ -88,11 +101,11 @@ function delay_pedido(data){
     if (index > -1) {
       delete pedidos_pendientes[index];
       pedidos_pendientes.splice(index, 1);
-    }
-    console.log("pedido eliminado ", data);
-    for (var i in clients){
-      if (clients[i].type == 'CELL'){
-       io.to(i).emit('delete-pedido', data);
+      console.log("pedido eliminado", data);
+      for (var i in clients){
+        if (clients[i].type == 'CELL'){
+         io.to(i).emit('delete-pedido', data);
+        }
       }
     }
   }, data.time);
