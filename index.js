@@ -7,6 +7,7 @@ var connectionString = "postgres://"+config.postgres.user+":"+config.postgres.pa
 var clients = {};
 var motorizados = {};
 var pedidos_pendientes = [];
+var motorizados_gps = [];
 
 io.on('connection', function(socket) {
   socket.on('i-am', function(type) {
@@ -70,6 +71,12 @@ io.on('connection', function(socket) {
       }
     }
   });
+
+  socket.on('reponse-gps', function(data) {
+    console.log(data);
+    motorizados_gps.push(data);
+  });
+
 });
 
 
@@ -89,7 +96,6 @@ app.get('/cell', function(req, res){
   res.sendFile(__dirname + '/cell.html');
 });
 
-
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
@@ -105,6 +111,7 @@ function delay_pedido(data){
       for (var i in clients){
         if (clients[i].type == 'CELL'){
          io.to(i).emit('delete-pedido', data);
+         io.to(i).emit('request-gps', {});
         }
       }
     }
