@@ -46,21 +46,13 @@ io.on('connection', function(socket) {
   			console.log('GPS:');
   			console.log(msg);
   			for (var i in clients){
-  				if (clients[i] == 'WEB'){
-					 io.to(i).emit('send-gps', msg);
+  				if (clients[i].type == 'WEB'){
+					 io.to(i).emit('gps', msg);
   				}
   			}
 		  });
   	}
   });
-
-
-  socket.on('hola',function(data){
-    console.log(data);
-    console.log(data.web_id+"  "+socket.id);
-    io.to(socket.id).emit('respuesta', {id_gps:'7845652456'});
-  });
-
 
   socket.on('add-pedido', function(data) {
     pedidos_pendientes.push(data);
@@ -96,8 +88,8 @@ app.get('/cell', function(req, res){
   res.sendFile(__dirname + '/cell.html');
 });
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(4000, function(){
+  console.log('listening on *:4000');
 });
 
 

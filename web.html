@@ -8,6 +8,8 @@
 	<script>
 		socket = io();
 		var marker = null;
+		var ruta = null;
+		var markers = [];
 		var map;
 		socket.emit('i-am', 'WEB');
 		socket.on('you-are', function (msg){
@@ -21,9 +23,10 @@
 		socket.on('ionic-qr', function (msg){
 			document.getElementById("cell_id").value = msg;
 		});
-		socket.on('send-gps', function (msg){
+		socket.on('gps', function (msg){
 			console.log(msg);
-			var myLatLng = {lat: msg.lat, lng: msg.long};
+			markers.push(msg);
+			var myLatLng = msg;
 			if (marker == null || true){
 				marker = new google.maps.Marker({
 					position: myLatLng,
@@ -32,6 +35,15 @@
 					animation: google.maps.Animation.DROP
 				});
 				map.setCenter(myLatLng);
+
+				ruta = new google.maps.Polyline({
+				    path: markers,
+				    geodesic: true,
+				    strokeColor: '#FF0000',
+				    strokeOpacity: 1.0,
+				    strokeWeight: 2
+				});
+				ruta.setMap(map);
 			}else{
 				var cityCircle = new google.maps.Circle({
 			      strokeColor: '#0B9444',
