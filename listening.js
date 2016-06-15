@@ -53,6 +53,7 @@ module.exports = {
 	},
 
 	add_session: function (type, webuser, session, socket){
+		console.log("adding session");
 		if (this.listenings[type] == undefined){
 			this.listenings[type] = {};
 		}

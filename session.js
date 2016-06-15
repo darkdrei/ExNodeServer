@@ -5,6 +5,7 @@ var db = new sqlite3.Database(file);
 module.exports = {
 	session: {'WEB': {}, 'CELL': {}},
 	timeouts: {'WEB': {}, 'CELL': {}},
+	jars: {},
 
 	hash: function (username, password, usertype){
 		return new Buffer(username+'/'+password + '/' + usertype).toString('base64')
@@ -13,7 +14,7 @@ module.exports = {
 	die_session: function(session_id, usertype){
 		this.timeouts[usertype][session_id] = setTimeout(function(session_id) {
 		  delete this.session[usertype][session_id];
-		}.bind(this), 25000, session_id);
+		}.bind(this), 60000, session_id);
 	},
 
 	login: function (session_id, username, password, usertype, callback) {
@@ -29,6 +30,14 @@ module.exports = {
 		      }
 		    }.bind(this));
 		}.bind(this));
+	},
+
+	add_jar: function(session_id, cookieJar){
+		this.jars[session_id] = cookieJar;
+	},
+
+	get_jar: function(session_id){
+		return this.jars[session_id];
 	},
 
 	clear: function (session_id, usertype){
