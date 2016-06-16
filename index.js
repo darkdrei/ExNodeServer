@@ -10,6 +10,17 @@ var pedidos_pendientes = [];
 var motorizados_gps = [];
 
 io.on('connection', function(socket) {
+
+	socket.on('ionic-qr', function(msg){
+		console.log('QR:');
+		console.log(msg);
+		io.to(msg.web_id).emit('ionic-qr', msg.cell_id);
+	});
+
+	socket.on('who-i-am', function() {
+		io.to(socket.id).emit('you-are', socket.id);
+	});
+
 	socket.on('identify', function(message){
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
@@ -184,7 +195,7 @@ function delay_pedido(data){
 			delete pedidos_pendientes[index];
 			pedidos_pendientes.splice(index, 1);
 			console.log("pedido eliminado", data);
-			listening.add_messages_by_type(1, [message.pedido], function(django_id, sockets, message){
+			listening.add_messages_by_type(1, [data], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('delete-pedido', message);
 				}

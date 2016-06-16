@@ -11,7 +11,7 @@
 		var ruta = null;
 		var markers = [];
 		var map;
-		socket.emit('i-am', 'WEB');
+		socket.emit('who-i-am');
 		socket.on('you-are', function (msg){
 			document.getElementById("web_id").innerHTML = msg;
 			$("#qr").qrcode({
