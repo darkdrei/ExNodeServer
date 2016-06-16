@@ -48,6 +48,7 @@ io.on('connection', function(socket) {
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
+						console.log(data);
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								session.add_jar(django_id, cookieJar);
@@ -55,6 +56,7 @@ io.on('connection', function(socket) {
 								socket.emit('web-success-login');
 								socket.emit('list-pedidos', pedidos_pendientes);
 								listening.add_session(data.tipo, django_id, django_id, socket);
+								console.log(listening.listenings);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
 								});
@@ -89,7 +91,7 @@ io.on('connection', function(socket) {
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								socket.emit('success-login');
-								listening.add_session(data.type, django_id, django_id, socket);
+								listening.add_session(data.tipo, django_id, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.type, django_id, django_id, socket.id);
 								});
@@ -126,6 +128,31 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('asignar-pedido', function(message){
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+		var identificador = message['identificador'];
+
+		//var ID = session.get_session(django_id, usertype);
+
+		if(true){//ID){
+			listening.add_messages(2, identificador, [message.pedido]);
+
+			var sessions = listening.get_sessions(2, identificador);
+			var messages = listening.get_messages(2, identificador);
+
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var s in session){
+					var socket = session[s];
+					for(m in messages){
+						socket.emit('asignar-pedido', messages[m]);
+					}
+				}
+			}
+		}
+	})
+
 	socket.on('accept-pedido', function(message) {
 
 		console.log('accept-pedido');
@@ -142,7 +169,9 @@ io.on('connection', function(socket) {
 			console.log('accept-pedido', message, index, pedidos_pendientes[index]);
 			listening.add_messages_by_type(1, [pedidos_pendientes[index]], function(django_id, sockets, message){
 				for(var s in sockets){
-					sockets[s].emit('delete-pedido', message);
+					if(sockets[s] != socket){
+						sockets[s].emit('delete-pedido', message);
+					}
 				}
 			});
 			delete pedidos_pendientes[index];
@@ -165,6 +194,7 @@ io.on('connection', function(socket) {
 			});
 		}
 	});
+
 
 });
 
