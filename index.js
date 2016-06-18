@@ -4,6 +4,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var request = require('request');
+var mongoose = require('mongoose');
 
 
 var pedidos_pendientes = [];
