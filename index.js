@@ -8,6 +8,7 @@ var mongoose = require('mongoose');
 
 
 var pedidos_pendientes = [];
+var pedidos_auto = [];
 var motorizados_gps = [];
 
 io.on('connection', function(socket) {
@@ -152,7 +153,32 @@ io.on('connection', function(socket) {
 				}
 			}
 		}
-	})
+	});
+
+	socket.on('auto-asignar-pedido', function(message){
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+		var identificador = message['identificador'];
+
+		//var ID = session.get_session(django_id, usertype);
+
+		if(true){//ID){
+			listening.add_messages(2, identificador, [message.pedido]);
+
+			var sessions = listening.get_sessions(2, identificador);
+			var messages = listening.get_messages(2, identificador);
+
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var s in session){
+					var socket = session[s];
+					for(m in messages){
+						socket.emit('asignar-pedido', messages[m]);
+					}
+				}
+			}
+		}
+	});
 
 	socket.on('accept-pedido', function(message) {
 
@@ -220,9 +246,12 @@ http.listen(4000, function(){
 });
 
 function delay_pedido(data){
-	setTimeout(function(){
+	setTimeout(function(){	
 		var index = pedidos_pendientes.indexOf(data);
 		if (index > -1) {
+			var pedido = pedidos_pendientes[index];
+			auto_asignar(pedido);
+			pedidos_auto.push(pedido);
 			delete pedidos_pendientes[index];
 			pedidos_pendientes.splice(index, 1);
 			console.log("pedido eliminado", data);
@@ -233,4 +262,37 @@ function delay_pedido(data){
 			});
 		}
 	}, data.time);
+}
+
+
+function auto_asignar(pedido){
+	request.post(
+		{url:'http://localhost:8000/auto/', form: {'identificador': '359291054481645'} },
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+				var identificador = body;
+				console.log("voy a auto_asignar el pedido" , pedido, 'al usuario', body);
+				listening.add_messages(2, identificador, [pedido]);
+
+				var sessions = listening.get_sessions(2, identificador);
+				var messages = listening.get_messages(2, identificador);
+
+				for(var i in sessions){
+					var session = sessions[i];
+					for(var s in session){
+						var socket = session[s];
+						for(m in messages){
+							socket.emit('asignar-pedido', messages[m]);
+						}
+					}
+				}
+
+				listening.add_messages_by_type('web', [pedido], function(django_id, sockets, message){
+					for(var s in sockets){
+						sockets[s].emit('auto-asignar-pedido', {'pedido':pedido, 'motorizado': identificador});
+					}
+				});
+			}
+		}
+	)
 }
