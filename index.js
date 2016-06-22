@@ -1,10 +1,10 @@
 var session = require('./session');
 var listening = require('./listening');
+var tracker = require('./tracker');
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var request = require('request');
-var mongoose = require('mongoose');
 
 
 var pedidos_pendientes = [];
@@ -13,6 +13,13 @@ var motorizados_gps = [];
 
 io.on('connection', function(socket) {
 
+	tracker.setup(function(){
+		console.log("ok");
+		tracker.track('pedido1', 'placa1', 'motorizado perez', 10.3970683, -75.4925648);
+		tracker.get_tracks('pedido1', function(doc){
+			console.log(doc);
+		});
+	});
 	socket.on('ionic-qr', function(msg){
 		console.log('QR:');
 		console.log(msg);
@@ -226,19 +233,25 @@ io.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/web.html');
+  res.sendFile(__dirname + '/www/web.html');
 });
 
-app.get('/jquery.js', function(req, res){
-  res.sendFile(__dirname + '/jquery.js');
+app.get('/js/jquery.js', function(req, res){
+  res.sendFile(__dirname + '/www/js/jquery.js');
 });
-app.get('/jquery.qrcode.js', function(req, res){
-  res.sendFile(__dirname + '/jquery.qrcode.js');
+app.get('/js/jquery.qrcode.js', function(req, res){
+  res.sendFile(__dirname + '/www/js/jquery.qrcode.js');
+});
+app.get('/js/web.js', function(req, res){
+  res.sendFile(__dirname + '/www/js/web.js');
+});
+app.get('/css/web.css', function(req, res){
+  res.sendFile(__dirname + '/www/css/web.css');
 });
 
 
 app.get('/cell', function(req, res){
-  res.sendFile(__dirname + '/cell.html');
+  res.sendFile(__dirname + '/www/cell.html');
 });
 
 http.listen(4000, function(){
