@@ -5,11 +5,24 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var request = require('request');
 var mongoose = require('mongoose');
+var express = require('express');
+var multer  = require('multer')
 
+var storage =   multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, './img');
+  },
+  filename: function (req, file, callback) {
+    callback(null, file.fieldname + '-' + Date.now()+'.'+file.mimetype.split("/")[1]);
+  }
+});
+
+var upload = multer({ storage : storage}).single('confirmacion');
 
 var pedidos_pendientes = [];
 var pedidos_auto = [];
 var motorizados_gps = [];
+var motorizado_detenido = {};
 
 io.on('connection', function(socket) {
 
@@ -213,7 +226,13 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 
 		if(ID){
-			console.log('GPS:', message);
+			//console.log('GPS:', message);
+			if(!en_movimiento(message, ID['gps'])){
+				esperar_movimiento(django_id);
+			}else{
+				cancelar_espera(django);
+			}
+			session.set_value(django_id, 'gps', message, usertype);
 			listening.add_messages_by_type('web', [message], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('gps', message);
@@ -221,8 +240,6 @@ io.on('connection', function(socket) {
 			});
 		}
 	});
-
-
 });
 
 app.get('/', function(req, res){
@@ -240,6 +257,26 @@ app.get('/jquery.qrcode.js', function(req, res){
 app.get('/cell', function(req, res){
   res.sendFile(__dirname + '/cell.html');
 });
+
+app.get('/form', function(req, res){
+  res.sendFile(__dirname + '/form.html');
+});
+
+app.post('/upload',function(req,res){
+	console.log("uploading file")
+    upload(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        for(var i in req){
+        	console.log(i);
+        }
+        console.log(req.file);
+        console.log(req.body);
+        res.end("File is uploaded");
+    });
+});
+
 
 http.listen(4000, function(){
   console.log('listening on *:4000');
@@ -295,4 +332,33 @@ function auto_asignar(pedido){
 			}
 		}
 	)
+}
+
+function en_movimiento(actual, anterior){
+	return Math.sqrt(Math.pow((actual.lat - actual.lat), 2) + Math.pow((actual.lng - actual.lng), 2)) > 0.00487217386;
+}
+
+function esperar_movimiento(identificador){
+	console.log("estoy verificando", (motorizado_detenido[identificador] == undefined || motorizado_detenido[identificador]._called));
+	if (motorizado_detenido[identificador] == undefined || motorizado_detenido[identificador]._called) {
+		motorizado_detenido[identificador] = setTimeout(function(){
+			listening.add_messages_by_type('web', [{'identificador': identificador}], function(django_id, sockets, message){
+				for(var s in sockets){
+					sockets[s].emit('motorizado-detenido', message);
+				}
+			});
+		}, 20000);
+	};
+}
+
+function cancelar_espera(identificador){
+	if (motorizado_detenido[identificador] != undefined && !motorizado_detenido[identificador]._called) {
+		clearTimeout(motorizado_detenido[identificador]);
+		motorizado_detenido[identificador] = undefined;
+		listening.add_messages_by_type('web', [message], function(django_id, sockets, message){
+			for(var s in sockets){
+				sockets[s].emit('motorizado-movimiento', {'identificador': identificador});
+			}
+		});
+	};
 }
