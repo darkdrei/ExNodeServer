@@ -14,7 +14,7 @@ module.exports = {
 	die_session: function(session_id, usertype){
 		this.timeouts[usertype][session_id] = setTimeout(function(session_id) {
 		  delete this.session[usertype][session_id];
-		}.bind(this), 60000, session_id);
+		}.bind(this), 5000, session_id);
 	},
 
 	login: function (session_id, username, password, usertype, callback) {

@@ -6,8 +6,10 @@ var io = require('socket.io')(http);
 var request = require('request');
 var mongoose = require('mongoose');
 var express = require('express');
-var multer  = require('multer')
+var multer  = require('multer');
+var fs = require('fs');
 
+var host = 'http://localhost:8000'; //'http://192.168.0.105:9000';
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -29,11 +31,11 @@ io.on('connection', function(socket) {
 	socket.on('ionic-qr', function(msg){
 		console.log('QR:');
 		console.log(msg);
-		io.to(msg.web_id).emit('ionic-qr', msg.cell_id);
+		io.to(msg.web_id).emit('ionic-qr', {imei: msg.cell_id});
 	});
 
 	socket.on('who-i-am', function() {
-		io.to(socket.id).emit('you-are', socket.id);
+		io.to(socket.id).emit('you-are', { id: socket.id});
 	});
 
 	socket.on('identify', function(message){
@@ -59,8 +61,9 @@ io.on('connection', function(socket) {
 		var web_pass = message['web_password'];
 		if (usertype == 'CELL') {
 			request.post(
-				{url:'http://localhost:8000/session/', jar:cookieJar, form: {'username': django_id, 'password': web_pass} },
+				{url: host + '/usuario/session/', jar:cookieJar, form: {'username': django_id, 'password': web_pass} },
 				function (error, response, body) {
+					console.log(body);
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
 						console.log(data);
@@ -99,7 +102,7 @@ io.on('connection', function(socket) {
 			console.log("no tienes cookies pri");
 		} else if (usertype == 'CELL') {
 			request(
-				{url:'http://localhost:8000/logged/', jar:cookieJar},
+				{url: host + '/usuario/logged/', jar:cookieJar},
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
@@ -133,13 +136,20 @@ io.on('connection', function(socket) {
 		//var ID = session.get_session(django_id, usertype);
 
 		if(true){//ID){
-			pedidos_pendientes.push(message.pedido);
-			delay_pedido(message.pedido);
-			listening.add_messages_by_type(1, [message.pedido], function(django_id, sockets, message){
-				for(var s in sockets){
-					sockets[s].emit('notify-pedido', message);
-				}
-			});
+			if (message.pedidos) {
+				var pedidos = message.pedidos;
+				for (var i = pedidos.length - 1; i >= 0; i--) {
+					pedido = pedidos[i];
+					console.log(pedido);
+					pedidos_pendientes.push(pedido);
+					delay_pedido(pedido);
+					listening.add_messages_by_type(1, [pedido], function(django_id, sockets, message){
+						for(var s in sockets){
+							sockets[s].emit('notify-pedido', message);
+						}
+					});
+				};
+			};
 		}
 	});
 
@@ -149,6 +159,7 @@ io.on('connection', function(socket) {
 		var identificador = message['identificador'];
 
 		//var ID = session.get_session(django_id, usertype);
+		console.log(message);
 
 		if(true){//ID){
 			listening.add_messages(2, identificador, [message.pedido]);
@@ -263,17 +274,43 @@ app.get('/form', function(req, res){
 });
 
 app.post('/upload',function(req,res){
-	console.log("uploading file")
+	console.log(req.body);
+
+	console.log("uploading file ");
     upload(req,res,function(err) {
         if(err) {
             return res.end("Error uploading file.");
         }
-        for(var i in req){
-        	console.log(i);
+        var django_id = req.body['django_id'];
+		var usertype = req.body['usertype'];
+		var pedido = req.body['pedido'];
+
+		var ID = session.get_session(django_id, usertype);
+
+        if (ID) {
+        	var cookieJar = session.get_jar(django_id);  	
+			request.post(
+				{
+					url: host + '/confirmar/', jar:cookieJar, formData: 
+					{
+						pedido: pedido,
+						motorizado: django_id,
+						imagen: fs.createReadStream(__dirname + "/" +req.file.path),
+					} 
+				},
+				function (error, response, body) {
+					if (!error && response.statusCode == 200) {
+						return res.end("File is uploaded");
+					}else{
+						return res.end("Error post");
+					}
+					console.log("status response", response.statusCode);
+					console.log("response", body);
+				}
+			)
+        }else{
+        	return res.end("Not logged");
         }
-        console.log(req.file);
-        console.log(req.body);
-        res.end("File is uploaded");
     });
 });
 
@@ -283,6 +320,10 @@ http.listen(4000, function(){
 });
 
 function delay_pedido(data){
+	var time = 60000;
+	if (data.time) {
+		time = data.time;
+	};
 	setTimeout(function(){	
 		var index = pedidos_pendientes.indexOf(data);
 		if (index > -1) {
@@ -298,7 +339,7 @@ function delay_pedido(data){
 				}
 			});
 		}
-	}, data.time);
+	}, time);
 }
 
 

@@ -1,0 +1,17 @@
+{ pedido: { info: [ { nombre: 'sdsd', cantidad: 23, valor: 5000 },
+     { nombre: 'dsdsdsds', cantidad: 34, valor: 12000 },
+     { nombre: 'dsdsdsds', cantidad: 12, valor: 10000 } ],
+     empresa: [ { latitud: 345,
+         referencia: 'fdfdfd',
+         direccion: 'fdfdfd',
+         nit: '322sd',
+         fijo: '',
+         id: 3,
+         longitud: 453,
+         celular: '' } ],
+     motorizado: 8,
+     retraso: 80000,
+     total: 643000,
+     id: 16 },
+  tipo: 1
+}
