@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host = 'http://localhost:8000'; //'http://192.168.0.105:9000';
+var host =  'http://192.168.0.105:9000'; //'http://localhost:8000';
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -27,13 +27,13 @@ var motorizado_detenido = {};
 
 io.on('connection', function(socket) {
 
-	tracker.setup(function(){
+	/*tracker.setup(function(){
 		console.log("ok");
 		tracker.track('pedido1', 'placa1', 'motorizado perez', 10.3970683, -75.4925648);
 		tracker.get_tracks('pedido1', function(doc){
 			console.log(doc);
 		});
-	});
+	});*/
 	socket.on('ionic-qr', function(msg){
 		console.log('QR:');
 		console.log(msg);
@@ -69,7 +69,6 @@ io.on('connection', function(socket) {
 			request.post(
 				{url: host + '/usuario/session/', jar:cookieJar, form: {'username': django_id, 'password': web_pass} },
 				function (error, response, body) {
-					console.log(body);
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
 						console.log(data);
@@ -80,7 +79,6 @@ io.on('connection', function(socket) {
 								socket.emit('web-success-login');
 								socket.emit('list-pedidos', pedidos_pendientes);
 								listening.add_session(data.tipo, django_id, django_id, socket);
-								console.log(listening.listenings);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
 								});
@@ -117,7 +115,7 @@ io.on('connection', function(socket) {
 								socket.emit('success-login');
 								listening.add_session(data.tipo, django_id, django_id, socket);
 								socket.on('disconnect', function(){
-									listening.delte_session(data.type, django_id, django_id, socket.id);
+									listening.delte_session(data.tipo, django_id, django_id, socket.id);
 								});
 							}else{
 								socket.emit('error-login');
@@ -146,9 +144,15 @@ io.on('connection', function(socket) {
 				var pedidos = message.pedidos;
 				for (var i = pedidos.length - 1; i >= 0; i--) {
 					pedido = pedidos[i];
+					pedido.tipo = message.tipo;
 					console.log(pedido);
 					pedidos_pendientes.push(pedido);
 					delay_pedido(pedido);
+					listening.add_messages_by_type(2, [pedido], function(django_id, sockets, message){
+						for(var s in sockets){
+							sockets[s].emit('notify-pedido', message);
+						}
+					});
 					listening.add_messages_by_type(1, [pedido], function(django_id, sockets, message){
 						for(var s in sockets){
 							sockets[s].emit('notify-pedido', message);
@@ -162,16 +166,19 @@ io.on('connection', function(socket) {
 	socket.on('asignar-pedido', function(message){
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
-		var identificador = message['identificador'];
 
 		//var ID = session.get_session(django_id, usertype);
 		console.log(message);
 
 		if(true){//ID){
-			listening.add_messages(2, identificador, [message.pedido]);
 
-			var sessions = listening.get_sessions(2, identificador);
-			var messages = listening.get_messages(2, identificador);
+			var pedido = message.pedido;
+			pedido.tipo = message.tipo;
+			var identificador = message.pedido.motorizado;
+			listening.add_messages(1, identificador, [pedido]);
+
+			var sessions = listening.get_sessions(1, identificador);
+			var messages = listening.get_messages(1, identificador);
 
 			for(var i in sessions){
 				var session = sessions[i];
@@ -210,6 +217,34 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('recojer-pedido', function(message) {
+
+		console.log('recojer-pedido');
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			recojer_pedido(message.pedido_id, message.cell_id, message.tipo)			
+		}
+	});
+
+	socket.on('pedido-recibido', function(message) {
+
+		console.log('pedido-recibido');
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			recibir_pedido(message.pedido_id, message.cell_id);
+		}
+	});
+
 	socket.on('accept-pedido', function(message) {
 
 		console.log('accept-pedido');
@@ -223,7 +258,10 @@ io.on('connection', function(socket) {
 			var index = pedidos_pendientes.findIndex(function(pedido){
 				return pedido.id == message.pedido_id;
 			});
+			
 			console.log('accept-pedido', message, index, pedidos_pendientes[index]);
+			aceptar_pedido(message.pedido_id, message.cell_id);
+
 			listening.add_messages_by_type(1, [pedidos_pendientes[index]], function(django_id, sockets, message){
 				for(var s in sockets){
 					if(sockets[s] != socket){
@@ -276,6 +314,13 @@ app.get('/css/web.css', function(req, res){
   res.sendFile(__dirname + '/www/css/web.css');
 });
 
+app.get('/img/pin.svg', function(req, res){
+  res.sendFile(__dirname + '/www/img/pin.svg');
+});
+
+app.get('/img/pin_red.svg', function(req, res){
+  res.sendFile(__dirname + '/www/img/pin_red.svg');
+});
 
 app.get('/cell', function(req, res){
   res.sendFile(__dirname + '/www/cell.html');
@@ -414,4 +459,73 @@ function cancelar_espera(identificador){
 			}
 		});
 	};
+}
+
+function aceptar_pedido(pedido_id, cell_id){
+	var cookieJar = session.get_jar(cell_id);
+	console.log("enviare esto", {
+				pedido: pedido_id,
+				motorizado: cell_id,
+			});
+	request.post(
+		{
+			url: host + '/pedidos/aceptar/pws/', jar:cookieJar, form: 
+			{
+				pedido: pedido_id,
+				motorizado: cell_id,
+			} 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio aceptar_pedido");
+			}
+			console.log(body)
+		}
+	)
+}
+
+function recojer_pedido(pedido_id, cell_id, tipo){
+	var cookieJar = session.get_jar(cell_id);
+	var url = host + '/pedidos/recoger/pws/';
+	if(tipo == 1){
+		url = host + '/pedidos/recoger/pplataforma/';
+	}
+	console.log("mandare a la url ", url);
+	request.post(
+		{
+			url: url, jar:cookieJar, form: 
+			{
+				pedido: pedido_id,	
+				motorizado: cell_id,
+			}
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio aceptar_pedido");
+			}
+			console.log(body)
+		}
+	)
+}
+
+function recibir_pedido(pedido_id, cell_id){
+	var cookieJar = session.get_jar(cell_id);
+	request.post(
+		{
+			url: host + '/pedidos/aceptar/pplataforma/', jar:cookieJar, form: 
+			{
+				pedido: pedido_id,
+				motorizado: cell_id,
+			} 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio aceptar_pedido");
+			}
+			console.log(body)
+		}
+	)
 }

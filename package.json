@@ -13,14 +13,10 @@
     "jade": "~1.11.0",
     "mongoose": "^4.5.0",
     "morgan": "~1.6.1",
-<<<<<<< HEAD
     "multer": "^1.1.0",
-    "serve-favicon": "~2.3.0"
-=======
-    "request": "^2.72.0",
     "serve-favicon": "~2.3.0",
+    "request": "^2.72.0",
     "socketio": "^1.0.0",
     "sqlite3": "^3.1.4"
->>>>>>> mongo
   }
 }
