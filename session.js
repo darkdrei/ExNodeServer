@@ -6,6 +6,8 @@ module.exports = {
 	session: {'WEB': {}, 'CELL': {}},
 	timeouts: {'WEB': {}, 'CELL': {}},
 	jars: {},
+	data: {},
+	tokens: {},
 
 	hash: function (username, password, usertype){
 		return new Buffer(username+'/'+password + '/' + usertype).toString('base64')
@@ -38,6 +40,22 @@ module.exports = {
 
 	get_jar: function(session_id){
 		return this.jars[session_id];
+	},
+
+	add_data: function(session_id, data){
+		this.data[session_id] = data;
+	},
+
+	get_data: function(session_id){
+		return this.data[session_id];
+	},
+
+	add_token: function(session_id, token){
+		this.tokens[token] = session_id;
+	},
+
+	get_token: function(token){
+		return this.tokens[token];
 	},
 
 	clear: function (session_id, usertype){
