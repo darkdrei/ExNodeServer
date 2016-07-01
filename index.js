@@ -341,14 +341,19 @@ app.post('/upload',function(req,res){
         var django_id = req.body['django_id'];
 		var usertype = req.body['usertype'];
 		var pedido = req.body['pedido'];
+		var tipo = req.body['tipo'];
 
 		var ID = session.get_session(django_id, usertype);
 
         if (ID) {
-        	var cookieJar = session.get_jar(django_id);  	
+        	var cookieJar = session.get_jar(django_id);
+        	var url = host + '/pedidos/confirmar/pws/';
+			if(tipo == 1){
+				url = host + '/pedidos/confirmar/pplataforma/';
+			}
 			request.post(
 				{
-					url: host + '/confirmar/', jar:cookieJar, formData: 
+					url: url, jar:cookieJar, formData: 
 					{
 						pedido: pedido,
 						motorizado: django_id,
@@ -356,13 +361,13 @@ app.post('/upload',function(req,res){
 					} 
 				},
 				function (error, response, body) {
+					console.log("status response", response.statusCode);
+					console.log("response", body);
 					if (!error && response.statusCode == 200) {
 						return res.end("File is uploaded");
 					}else{
 						return res.end("Error post");
 					}
-					console.log("status response", response.statusCode);
-					console.log("response", body);
 				}
 			)
         }else{
@@ -393,6 +398,7 @@ function delay_pedido(data){
 			listening.add_messages_by_type(1, [data], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('delete-pedido', message);
+					sockets[s].emit('request-gps', message);
 				}
 			});
 		}
