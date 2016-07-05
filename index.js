@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://192.168.0.105:9000'; //'http://localhost:8000';
+var host =  'http://192.168.0.109:9000'; //'http://localhost:8000';
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -139,7 +139,7 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('add-pedido', function(message) {
-		var django_id = message['django_id'];
+		var id = message['django_id'];
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
@@ -148,19 +148,26 @@ io.on('connection', function(socket) {
 			if (message.pedidos) {
 				var pedidos = message.pedidos;
 				for (var i = pedidos.length - 1; i >= 0; i--) {
-					pedido = pedidos[i];
+					var pedido = pedidos[i];
 					pedido.tipo = message.tipo;
 					pedidos_pendientes.push(pedido);
 					delay_pedido(pedido);
 					listening.add_messages_by_type(2, [pedido], function(django_id, sockets, message){
-						for(var s in sockets){
-							sockets[s].emit('notify-pedido', message);
-						}
+						var ciudad = session.get_data(django_id)['ciudad'];
+						if (ciudad == message.ciudad) {
+							for(var s in sockets){
+								sockets[s].emit('notify-pedido', message);
+							}
+						};
 					});
 					listening.add_messages_by_type(1, [pedido], function(django_id, sockets, message){
-						for(var s in sockets){
-							sockets[s].emit('notify-pedido', message);
-						}
+						var ciudad = session.get_data(django_id)['ciudad'];
+						console.log(ciudad, message.ciudad, ciudad == message.ciudad)
+						if (ciudad == message.ciudad) {
+							for(var s in sockets){
+								sockets[s].emit('notify-pedido', message);
+							}	
+						};
 					});
 				};
 			};
