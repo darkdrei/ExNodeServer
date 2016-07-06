@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://192.168.0.109:9000'; //'http://localhost:8000';
+var host =  'http://192.168.0.100:9000'; //'http://localhost:8000'; 
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -18,11 +18,11 @@ var storage =   multer.diskStorage({
   }
 });
 
-var upload = multer({ storage : storage}).single('confirmacion');
+var upload = multer({storage: storage}).single('confirmacion');
 
 var pedidos_pendientes = [];
 var pedidos_auto = [];
-var motorizados_gps = [];
+var motorizados_gps = {};
 var motorizado_detenido = {};
 
 io.on('connection', function(socket) {
@@ -80,6 +80,7 @@ io.on('connection', function(socket) {
 								socket.emit('web-success-login');
 								socket.emit('list-pedidos', pedidos_pendientes);
 								listening.add_session(data.tipo, django_id, django_id, socket);
+								send_messages(data.tipo, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
 								});
@@ -114,6 +115,7 @@ io.on('connection', function(socket) {
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								socket.emit('success-login');
+								send_messages(data.tipo, django_id, socket);
 								listening.add_session(data.tipo, django_id, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
@@ -183,6 +185,7 @@ io.on('connection', function(socket) {
 		if(true){//ID){
 
 			var pedido = message.pedido;
+			pedido['emit'] = 'asignar-pedido';
 			pedido.tipo = message.tipo;
 			var identificador = message.pedido.motorizado;
 			listening.add_messages(1, identificador, [pedido]);
@@ -255,6 +258,13 @@ io.on('connection', function(socket) {
 						}
 					}
 				});
+				listening.add_messages_by_type(2, [pedidos_pendientes[index]], function(django_id, sockets, message){
+					for(var s in sockets){
+						if(sockets[s] != socket){
+							sockets[s].emit('delete-pedido', message);
+						}
+					}
+				});
 				delete pedidos_pendientes[index];
 				pedidos_pendientes.splice(index, 1);
 			};
@@ -310,6 +320,22 @@ io.on('connection', function(socket) {
 			session_id.emit('select-motorizado', message);
 		}
 	});	
+
+	socket.on('visit-message', function(message) {
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			var tipo = session.get_data(django_id)['tipo'];
+			var messages = listening.get_messages(tipo, django_id);
+			listening.visit_message(tipo, django_id, message.message_id, socket.id, function(){
+				//pass
+			});
+			console.log("visit-message", message, messages);
+		}
+	});
 });
 
 app.get('/', function(req, res){
@@ -408,7 +434,6 @@ function delay_pedido(data){
 		var index = pedidos_pendientes.indexOf(data);
 		if (index > -1) {
 			var pedido = pedidos_pendientes[index];
-			//auto_asignar(pedido);
 			pedidos_auto.push(pedido);
 			delete pedidos_pendientes[index];
 			pedidos_pendientes.splice(index, 1);
@@ -541,6 +566,7 @@ function auto_asignar(data){
 		function (error, response, body) {
 			if (!error && response.statusCode == 200) {
 				var identificador = body;
+				data.pedido['emit'] = 'asignar-pedido';
 				listening.add_messages(1, identificador, [data.pedido]);
 
 				var sessions = listening.get_sessions(1, identificador);
@@ -559,4 +585,33 @@ function auto_asignar(data){
 			}
 		}
 	)
+}
+
+function send_messages(tipo, django_id, socket){
+	var messages = listening.get_messages(tipo, django_id);
+	for(var i in messages){
+		var message = messages[i];
+		socket.emit(message.emit, message);
+	}
+}
+
+function delay_auto(data){
+	
+	var time = 10000;
+	
+	setTimeout(function(){	
+		var index = pedidos_auto.indexOf(data);
+		if (index > -1) {
+			var pedido = pedidos_auto[index];
+			pedidos_auto.push(pedido);
+			delete pedidos_auto[index];
+			pedidos_auto.splice(index, 1);
+			listening.add_messages_by_type(1, [data], function(django_id, sockets, message){
+				for(var s in sockets){
+					sockets[s].emit('delete-pedido', message);
+					sockets[s].emit('request-gps', message);
+				}
+			});
+		}
+	}, time);
 }
