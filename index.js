@@ -182,16 +182,24 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-
+		console.log('asignar-pedido', message);
 		if(true){//ID){
 
 			var pedido = message.pedido;
-			console.log(pedido);
 			pedido['emit'] = 'asignar-pedido';
 			pedido.tipo = message.tipo;
-			var identificador = message.pedido.motorizado;
+			var identificador = pedido.motorizado;
 			listening.add_messages(1, identificador, [pedido]);
-			send_unread_messages(1, identificador, socket);
+
+			var sessions = listening.get_sessions(1, identificador);
+			console.log(sessions);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(1, identificador, s);
+				}
+			}
 		}
 	});
 
@@ -307,6 +315,9 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('select-motorizado', function(message){
+
+		console.log(message);
+
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -333,7 +344,70 @@ io.on('connection', function(socket) {
 			listening.visit_message(tipo, django_id, message.message_id, socket.id, function(){
 				//pass
 			});
-			console.log("visit-message", message);
+		}
+	});
+
+	socket.on('modificar-pedido', function(message) {
+		var id = message['django_id'];
+		var usertype = message['usertype'];
+
+		//var ID = session.get_session(django_id, usertype);
+		if(true){//ID){
+			var pedido = message.pedido;
+			pedido['emit'] = 'modificar-pedido';
+			pedido.tipo = message.tipo;
+			var identificador = pedido.motorizado;
+			listening.add_messages(1, identificador, [pedido]);
+
+			var sessions = listening.get_sessions(1, identificador);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(1, identificador, s);
+				}
+			}
+		}
+	});
+	
+	socket.on('modificar-motorizado-pedido', function(message) {
+		var id = message['django_id'];
+		var usertype = message['usertype'];
+
+		//var ID = session.get_session(django_id, usertype);
+		if(true){//ID){
+			console.log('modificar-motorizado-pedido', message);
+			var pedido = message.pedido;
+			console.log(pedido);
+			pedido['emit'] = 'asignar-pedido';
+			pedido.tipo = message.tipo;
+			var identificador = message.mot_siguiente;
+			listening.add_messages(1, identificador, [pedido]);
+
+			var sessions = listening.get_sessions(1, identificador);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(1, identificador, s);
+				}
+			}
+
+			var pedido2 = JSON.parse(JSON.stringify(pedido));
+			pedido2['emit'] = 'trasladar-pedido';
+			pedido.tipo = message.tipo;
+			identificador = message.mot_anterior;
+			listening.add_messages(1, identificador, [pedido]);
+
+			var sessions = listening.get_sessions(1, identificador);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(1, identificador, s);
+				}
+			}
+
 		}
 	});
 });
@@ -458,9 +532,10 @@ function en_movimiento(actual, anterior){
 }
 
 function esperar_movimiento(identificador){
+	var empresa = session.get_data(identificador)['empresa'];
 	if (motorizado_detenido[identificador] == undefined || motorizado_detenido[identificador]._called) {
 		motorizado_detenido[identificador] = setTimeout(function(){
-			listening.add_messages_by_type('web', [{'identificador': identificador}], function(django_id, sockets, message){
+			listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('motorizado-detenido', message);
 				}
@@ -611,10 +686,9 @@ function send_messages(tipo, django_id, socket){
 
 function send_unread_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
-	//console.log(messages);
 	for(var i in messages){
 		var message = messages[i];
-		if (message['_visited_'] && message['_visited_'].length == 0) {
+		if (message['_visited_'].length == 0) {
 			socket.emit(message.emit, message);
 		};
 	}

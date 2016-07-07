@@ -59,10 +59,13 @@ socket.on('motorizado-detenido', function(message) {
 });
 
 socket.on('select-motorizado', function(message) {
-    console.log(message);
-    motorizados[message.motorizado].seleccionado = true;
-    if(motorizados[message.motorizado].marker){
-        motorizados[message.motorizado].marker.setIcon('img/sel_pin.svg');
+    if (motorizados[message.motorizado]) {
+        motorizados[message.motorizado].seleccionado = true;
+        if(motorizados[message.motorizado].marker){
+            motorizados[message.motorizado].marker.setIcon('img/sel_pin.svg');
+        }
+    }else{
+        Materialize.toast('Este motorizado no tiene rutas asignadas', 4000)
     }
 });
 
