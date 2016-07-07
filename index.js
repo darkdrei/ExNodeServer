@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://192.168.0.100:9000'; //'http://localhost:8000'; 
+var host =  'http://192.168.0.101:9000'; //'http://localhost:8000'; 
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -115,7 +115,6 @@ io.on('connection', function(socket) {
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								socket.emit('success-login');
-								send_unread_messages(data.tipo, django_id, socket);
 								listening.add_session(data.tipo, django_id, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
@@ -144,7 +143,7 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-		console.log('add-pedido', message);
+		console.log('add-pedido');
 		if(true){//ID){
 			if (message.pedidos) {
 				var pedidos = message.pedidos;
@@ -182,7 +181,7 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-		console.log('asignar-pedido', message);
+		console.log('asignar-pedido');
 		if(true){//ID){
 
 			var pedido = message.pedido;
@@ -192,7 +191,6 @@ io.on('connection', function(socket) {
 			listening.add_messages(1, identificador, [pedido]);
 
 			var sessions = listening.get_sessions(1, identificador);
-			console.log(sessions);
 			for(var i in sessions){
 				var session = sessions[i];
 				for(var j in session){
@@ -333,6 +331,9 @@ io.on('connection', function(socket) {
 	});	
 
 	socket.on('visit-message', function(message) {
+
+		console.log(message);
+
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -352,6 +353,7 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
+		console.log('modificar-pedido');
 		if(true){//ID){
 			var pedido = message.pedido;
 			pedido['emit'] = 'modificar-pedido';
@@ -376,9 +378,8 @@ io.on('connection', function(socket) {
 
 		//var ID = session.get_session(django_id, usertype);
 		if(true){//ID){
-			console.log('modificar-motorizado-pedido', message);
+			console.log('modificar-motorizado-pedido');
 			var pedido = message.pedido;
-			console.log(pedido);
 			pedido['emit'] = 'asignar-pedido';
 			pedido.tipo = message.tipo;
 			var identificador = message.mot_siguiente;
@@ -395,16 +396,16 @@ io.on('connection', function(socket) {
 
 			var pedido2 = JSON.parse(JSON.stringify(pedido));
 			pedido2['emit'] = 'trasladar-pedido';
-			pedido.tipo = message.tipo;
-			identificador = message.mot_anterior;
-			listening.add_messages(1, identificador, [pedido]);
+			pedido2.tipo = message.tipo;
+			var identificador2 = message.mot_anterior;
+			listening.add_messages(1, identificador2, [pedido2]);
 
-			var sessions = listening.get_sessions(1, identificador);
+			var sessions = listening.get_sessions(1, identificador2);
 			for(var i in sessions){
 				var session = sessions[i];
 				for(var j in session){
 					var s = session[j];
-					send_unread_messages(1, identificador, s);
+					send_unread_messages(1, identificador2, s);
 				}
 			}
 
@@ -686,9 +687,11 @@ function send_messages(tipo, django_id, socket){
 
 function send_unread_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
+	//console.log(messages);
 	for(var i in messages){
 		var message = messages[i];
 		if (message['_visited_'].length == 0) {
+			console.log('voy a mandar', message.emit);
 			socket.emit(message.emit, message);
 		};
 	}
