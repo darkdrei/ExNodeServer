@@ -115,7 +115,7 @@ io.on('connection', function(socket) {
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								socket.emit('success-login');
-								send_messages(data.tipo, django_id, socket);
+								send_unread_messages(data.tipo, django_id, socket);
 								listening.add_session(data.tipo, django_id, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
@@ -135,7 +135,6 @@ io.on('connection', function(socket) {
 			var empresa = message.empresa;
 			var token = message.token;
 			session.add_token(socket, token);
-			console.log(session.tokens);
 			listening.add_session('web-empresa-' + empresa, '123', '123', socket);
 		};
 	});
@@ -145,13 +144,15 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-
+		console.log('add-pedido', message);
 		if(true){//ID){
 			if (message.pedidos) {
 				var pedidos = message.pedidos;
 				for (var i = pedidos.length - 1; i >= 0; i--) {
 					var pedido = pedidos[i];
+					pedido['emit'] = 'add-pedido';
 					pedido.tipo = message.tipo;
+					pedido.time = message.retraso;
 					pedidos_pendientes.push(pedido);
 					delay_pedido(pedido);
 					listening.add_messages_by_type(2, [pedido], function(django_id, sockets, message){
@@ -185,23 +186,12 @@ io.on('connection', function(socket) {
 		if(true){//ID){
 
 			var pedido = message.pedido;
+			console.log(pedido);
 			pedido['emit'] = 'asignar-pedido';
 			pedido.tipo = message.tipo;
 			var identificador = message.pedido.motorizado;
 			listening.add_messages(1, identificador, [pedido]);
-
-			var sessions = listening.get_sessions(1, identificador);
-			var messages = listening.get_messages(1, identificador);
-
-			for(var i in sessions){
-				var session = sessions[i];
-				for(var s in session){
-					var socket = session[s];
-					for(m in messages){
-						socket.emit('asignar-pedido', messages[m]);
-					}
-				}
-			}
+			send_unread_messages(1, identificador, socket);
 		}
 	});
 
@@ -301,8 +291,18 @@ io.on('connection', function(socket) {
 
 		var ID = session.get_session(django_id, usertype);
 
+		console.log('response', message);
+
 		if(ID){
-			auto_asignar(message);
+			var pedido = message.pedido
+			if(!motorizados_gps[pedido.id]){
+				motorizados_gps[pedido.id] = []
+			}
+			motorizados_gps[pedido.id].push({
+				'lat': message.lat,
+				'lng': message.lng,
+				'identificador': message.django_id
+			});
 		}
 	});
 
@@ -333,7 +333,7 @@ io.on('connection', function(socket) {
 			listening.visit_message(tipo, django_id, message.message_id, socket.id, function(){
 				//pass
 			});
-			console.log("visit-message", message, messages);
+			console.log("visit-message", message);
 		}
 	});
 });
@@ -434,13 +434,19 @@ function delay_pedido(data){
 		var index = pedidos_pendientes.indexOf(data);
 		if (index > -1) {
 			var pedido = pedidos_pendientes[index];
-			pedidos_auto.push(pedido);
+			delay_auto(JSON.parse(JSON.stringify(pedido)));
 			delete pedidos_pendientes[index];
 			pedidos_pendientes.splice(index, 1);
-			listening.add_messages_by_type(1, [data], function(django_id, sockets, message){
+			pedido['emit'] = 'delete-pedido';
+			listening.add_messages_by_type(1, [JSON.parse(JSON.stringify(pedido))], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('delete-pedido', message);
 					sockets[s].emit('request-gps', message);
+				}
+			});
+			listening.add_messages_by_type(2, [JSON.parse(JSON.stringify(pedido))], function(django_id, sockets, message){
+				for(var s in sockets){
+					sockets[s].emit('delete-pedido', message);
 				}
 			});
 		}
@@ -544,20 +550,12 @@ function recibir_pedido(pedido_id, cell_id){
 	)
 }
 
-function auto_asignar(data){
-	var tienda = data.pedido.tienda[0].id;
-	var motorizado_json = []
-	motorizado_json.push({
-		'lat': data.lat,
-		'lng': data.lng,
-		'identificador': data.django_id
-	})
-
-	var cookieJar = session.get_jar(data.django_id);
+function auto_asignar(pedido, motorizado_json){
+	var tienda = pedido.tienda[0].id;
 
 	request.post(
 		{
-			url: host + '/pedidos/autoasignar/', jar:cookieJar, form: 
+			url: host + '/pedidos/autoasignar/', form: 
 			{
 				tienda: tienda,	
 				motorizado_json: JSON.stringify(motorizado_json),
@@ -566,8 +564,11 @@ function auto_asignar(data){
 		function (error, response, body) {
 			if (!error && response.statusCode == 200) {
 				var identificador = body;
-				data.pedido['emit'] = 'asignar-pedido';
-				listening.add_messages(1, identificador, [data.pedido]);
+				
+				aceptar_pedido(pedido.id, identificador);
+
+				pedido['emit'] = 'asignar-pedido';
+				listening.add_messages(1, identificador, [pedido]);
 
 				var sessions = listening.get_sessions(1, identificador);
 				var messages = listening.get_messages(1, identificador);
@@ -576,7 +577,7 @@ function auto_asignar(data){
 					var session = sessions[i];
 					for(var s in session){
 						var socket = session[s];
-						socket.emit('asignar-pedido', data.pedido);
+						socket.emit('asignar-pedido', pedido);
 					}
 				}
 				console.log(body);
@@ -587,6 +588,19 @@ function auto_asignar(data){
 	)
 }
 
+function delay_auto(pedido){
+
+	var time = 10000;
+	
+	setTimeout(function(){
+		console.log('delay-auto', motorizados_gps);
+		if(motorizados_gps[pedido.id]){
+			var locations = motorizados_gps[pedido.id]
+			auto_asignar(pedido, locations);
+		}
+	}, time);
+}
+
 function send_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
 	for(var i in messages){
@@ -595,23 +609,13 @@ function send_messages(tipo, django_id, socket){
 	}
 }
 
-function delay_auto(data){
-	
-	var time = 10000;
-	
-	setTimeout(function(){	
-		var index = pedidos_auto.indexOf(data);
-		if (index > -1) {
-			var pedido = pedidos_auto[index];
-			pedidos_auto.push(pedido);
-			delete pedidos_auto[index];
-			pedidos_auto.splice(index, 1);
-			listening.add_messages_by_type(1, [data], function(django_id, sockets, message){
-				for(var s in sockets){
-					sockets[s].emit('delete-pedido', message);
-					sockets[s].emit('request-gps', message);
-				}
-			});
-		}
-	}, time);
+function send_unread_messages(tipo, django_id, socket){
+	var messages = listening.get_messages(tipo, django_id);
+	//console.log(messages);
+	for(var i in messages){
+		var message = messages[i];
+		if (message['_visited_'] && message['_visited_'].length == 0) {
+			socket.emit(message.emit, message);
+		};
+	}
 }
