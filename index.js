@@ -348,6 +348,22 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('delete-message', function(message) {
+
+		console.log('delete-message');
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			var tipo = session.get_data(django_id)['tipo'];
+			var messages = listening.get_messages(tipo, django_id);
+			listening.delete_messages(tipo, django_id, message.message_id);
+		}
+	});
+
 	socket.on('modificar-pedido', function(message) {
 		var id = message['django_id'];
 		var usertype = message['usertype'];
@@ -495,6 +511,50 @@ app.post('/upload',function(req,res){
     });
 });
 
+app.post('/cancel',function(req,res){
+
+	console.log("uploading file ");
+    upload(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        var django_id = req.body['django_id'];
+		var usertype = req.body['usertype'];
+		var pedido = req.body['pedido'];
+		var tipo = req.body['tipo'];
+
+		var ID = session.get_session(django_id, usertype);
+
+        if (ID) {
+        	var cookieJar = session.get_jar(django_id);
+        	var url = host + '/pedidos/cancelar/pws/';
+			if(tipo == 1){
+				url = host + '/pedidos/cancelar/pplataforma/';
+			}
+			request.post(
+				{
+					url: url, jar:cookieJar, formData: 
+					{
+						pedido: pedido,
+						motorizado: django_id,
+						imagen: fs.createReadStream(__dirname + "/" +req.file.path),
+					} 
+				},
+				function (error, response, body) {
+					console.log("status response", response.statusCode);
+					console.log("response", body);
+					if (!error && response.statusCode == 200) {
+						return res.end("File is uploaded");
+					}else{
+						return res.end("Error post");
+					}
+				}
+			)
+        }else{
+        	return res.end("Not logged");
+        }
+    });
+});
 
 http.listen(4000, function(){
   console.log('listening on *:4000');
