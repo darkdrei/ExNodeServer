@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://192.168.0.101:9000'; //'http://localhost:8000'; 
+var host =  'http://localhost:9000'; //'http://192.168.0.101:9000'; //
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -427,6 +427,20 @@ io.on('connection', function(socket) {
 
 		}
 	});
+	
+	socket.on('numero-pedido', function(message) {
+
+		console.log('numero-pedido', message);
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			numero_pedido(message.cell_id)		
+		}
+	});
 });
 
 app.get('/', function(req, res){
@@ -635,6 +649,39 @@ function aceptar_pedido(pedido_id, cell_id){
 			if (!error && response.statusCode == 200) {
 			}else{
 				console.log("hubo un error servicio aceptar_pedido");
+			}
+			console.log(body)
+		}
+	)
+}
+
+function numero_pedido(cell_id){
+	var cookieJar = session.get_jar(cell_id);
+	var tipo = session.get_data(cell_id)['tipo'];
+	console.log("enviare esto", {
+				motorizado: cell_id,
+				tipo: tipo
+			});
+	request.post(
+		{
+			url: host + '/motorizado/get/pedidos/', jar:cookieJar, form: 
+			{
+				motorizado: cell_id,
+			} 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio motorizad_get_pedidos");
+			}
+			listening.add_messages(tipo, cell_id, [{numero_pedidos: body, emit:'numero-pedido'}]);
+			var sessions = listening.get_sessions(tipo, cell_id);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(tipo, cell_id, s);
+				}
 			}
 			console.log(body)
 		}
