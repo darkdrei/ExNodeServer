@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://localhost:9000'; //'http://192.168.0.101:9000'; //
+var host =  'http://192.168.0.16:9000'; //'http://192.168.0.101:9000'; //
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
@@ -441,6 +441,13 @@ io.on('connection', function(socket) {
 			numero_pedido(message.cell_id)		
 		}
 	});
+
+	socket.on('get-data', function(message) {
+
+		console.log('get-data', message);
+		get_data(message.cell_id, socket)
+
+	});
 });
 
 app.get('/', function(req, res){
@@ -684,6 +691,31 @@ function numero_pedido(cell_id){
 				}
 			}
 			console.log(body)
+		}
+	)
+}
+
+function get_data(cell_id, socket){
+	var cookieJar = session.get_jar(cell_id);
+	console.log("enviare esto", {
+				motorizado: cell_id,
+			});
+	request(
+		{
+			url: host + '/motorizado/get/info/?q='+cell_id 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio motorizado_get_info");
+			}
+			var resp = JSON.parse(body);
+			resp = resp.object_list[0];
+			if (resp.foto) {
+				resp.foto = host + '/media/' + resp.foto;
+			};
+			console.log(resp);
+			socket.emit('get-data', resp);
 		}
 	)
 }
