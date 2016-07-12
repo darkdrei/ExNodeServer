@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://192.168.0.103:9000'; //'http://192.168.0.101:9000'; //
+var host =  'http://104.236.33.228:9000'; //'http://192.168.0.101:9000'; //
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './img');
