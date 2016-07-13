@@ -182,7 +182,7 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-		console.log('asignar-pedido');
+		console.log('asignar-pedido', message);
 		if(true){//ID){
 
 			var pedido = message.pedido;
