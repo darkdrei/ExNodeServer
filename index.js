@@ -135,7 +135,7 @@ io.on('connection', function(socket) {
 			var empresa = message.empresa;
 			var token = message.token;
 			session.add_token(socket, token);
-			listening.add_session('web-empresa-' + empresa, '123', '123', socket);
+			listening.add_session('web-tienda-' + empresa, '123', '123', socket);
 		};
 	});
 
@@ -283,8 +283,8 @@ io.on('connection', function(socket) {
 			}
 			session.set_value(django_id, 'gps', message, usertype);
 
-			var empresa = session.get_data(django_id)['empresa'];
-			listening.add_messages_by_type('web-empresa-' + empresa, [message], function(django_id, sockets, message){
+			var tienda = session.get_data(django_id)['tienda'];
+			listening.add_messages_by_type('web-tienda-' + tienda, [message], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('gps', message);
 				}
@@ -615,10 +615,10 @@ function en_movimiento(actual, anterior){
 }
 
 function esperar_movimiento(identificador){
-	var empresa = session.get_data(identificador)['empresa'];
+	var tienda = session.get_data(identificador)['tienda'];
 	if (motorizado_detenido[identificador] == undefined || motorizado_detenido[identificador]._called) {
 		motorizado_detenido[identificador] = setTimeout(function(){
-			listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
+			listening.add_messages_by_type('web-tienda-' + tienda, [{'identificador': identificador}], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('motorizado-detenido', message);
 				}
