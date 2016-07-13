@@ -166,7 +166,7 @@ io.on('connection', function(socket) {
 					listening.add_messages_by_type(1, [pedido], function(django_id, sockets, message){
 						var tienda = session.get_data(django_id)['tienda'];
 						console.log(tienda, message.tienda, tienda == message.tienda)
-						if (tienda == message.tienda) {
+						if (tienda == message.tienda[0].id) {
 							for(var s in sockets){
 								sockets[s].emit('notify-pedido', message);
 							}	
