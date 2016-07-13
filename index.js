@@ -598,7 +598,10 @@ function delay_pedido(data){
 			listening.add_messages_by_type(1, [JSON.parse(JSON.stringify(pedido))], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('delete-pedido', message);
-					sockets[s].emit('request-gps', message);
+					var tienda = session.get_data(django_id)['tienda'];
+					if (tienda == message.tienda[0].id) {
+						sockets[s].emit('request-gps', message);
+					}
 				}
 			});
 			listening.add_messages_by_type(2, [JSON.parse(JSON.stringify(pedido))], function(django_id, sockets, message){
