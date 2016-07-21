@@ -1,19 +1,65 @@
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script>
-  var socket = io('http://127.0.0.1:3000');
-  socket.emit('hola', {'web_id': '123456', 'cell_id': 'Hola mundo','carai':socket.id});
-  socket.on('respuesta',function(data){console.log(data);});
-  function send(){
-  	var web_id = document.getElementById("web_id").value;
-  	var cell_id = document.getElementById("cell_id").value;
-  	socket.emit('ionic-qr', {'web_id': web_id, 'cell_id': cell_id,'socket':socket.id});	
-  }  
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+	<script type="text/javascript">
 
-<p>
-WEB_ID(QR): <input id="web_id" type="text" />
-</p>
-<p>
-CELL_ID: <input id="cell_id" type="text" />
-</p>
-<button onclick="send()">SEND</button>
+	$(document).ready(function() {
+		var socket = socket = io();
+		var imei = '778d2d83f54a9ccb';
+		window.pos = {lat: 10.385437, lng: -75.469117};
+		
+		socket.emit('web-login', {
+			'django_id': imei,
+			'usertype': 'CELL',
+			'web_password': '123456',
+			'password': '123456',
+			'username': 'user1'
+		});
+
+		socket.on('web-success-login', function() {
+			setInterval(function(){
+				socket.emit('identify', {
+			    	'django_id': imei,
+			    	'usertype': 'CELL',
+			    });
+			}, 5000)
+		});
+
+		socket.on('success-login', function() {
+			send_messages();
+		});
+
+		socket.on('identify', function(message) {
+			if(!message['ID']){
+				socket_login();
+			}else{
+				send_messages();
+			}
+		});
+
+		socket_login = function(){
+			socket.emit('login', {
+				'django_id': imei,
+				'usertype': 'CELL',
+				'web_password': '123456',
+				'password': '123456',
+				'username': 'user1'
+			});
+		}
+		send_messages = function() {
+			var message = pos;
+	      	message['django_id'] = imei;
+	      	message['usertype'] = 'CELL';
+	    	socket.emit('send-gps', message);
+    	}
+  	});
+  	</script>
+  	<title></title>
+</head>
+<body>
+</body>
+</html>

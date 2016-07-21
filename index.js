@@ -50,7 +50,7 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		var ID = session.get_session(django_id, usertype);
-		console.log('identify', {"ID": ID});
+		//console.log('identify', {"ID": ID});
 		socket.emit('identify', {"ID": ID});
 		if (ID){
 			session.clear(django_id, usertype);
@@ -275,11 +275,11 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 
 		if(ID){
-			//console.log('GPS:', message);
+			//console.log('GPS:', message, ID['gps'], en_movimiento(message, ID['gps']));
 			if(!en_movimiento(message, ID['gps'])){
 				esperar_movimiento(django_id);
 			}else{
-				cancelar_espera(django);
+				cancelar_espera(django_id);
 			}
 			session.set_value(django_id, 'gps', message, usertype);
 
@@ -624,7 +624,12 @@ function delay_pedido(data){
 }
 
 function en_movimiento(actual, anterior){
-	return Math.sqrt(Math.pow((actual.lat - actual.lat), 2) + Math.pow((actual.lng - actual.lng), 2)) > 0.00487217386;
+	if (anterior) {
+		var distance = Math.sqrt(Math.pow((actual.lat - anterior.lat), 2) + Math.pow((actual.lng - anterior.lng), 2));
+		console.log([actual.lat, actual.lng], [anterior.lat, anterior.lng], distance);
+		return distance > 0.00487217386;
+	};
+	return true;
 }
 
 function esperar_movimiento(identificador){
@@ -641,15 +646,18 @@ function esperar_movimiento(identificador){
 }
 
 function cancelar_espera(identificador){
+	console.log("cancelar espera");
 	var empresa = session.get_data(identificador)['empresa'];
+
+	listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
+		for(var s in sockets){
+			sockets[s].emit('motorizado-movimiento', message);
+		}
+	});
+
 	if (motorizado_detenido[identificador] != undefined && !motorizado_detenido[identificador]._called) {
 		clearTimeout(motorizado_detenido[identificador]);
 		motorizado_detenido[identificador] = undefined;
-		listening.add_messages_by_type('web-empresa-' + empresa, [message], function(django_id, sockets, message){
-			for(var s in sockets){
-				sockets[s].emit('motorizado-movimiento', {'identificador': identificador});
-			}
-		});
 	};
 }
 

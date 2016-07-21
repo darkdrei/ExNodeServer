@@ -60,7 +60,7 @@ socket.on('motorizado-detenido', function(message) {
 	motorizados[message.identificador].detenido = true;
 });
 
-socket.on('motorizado-movimiento', function(){
+socket.on('motorizado-movimiento', function(message){
     console.log(message);
     motorizados[message.identificador].detenido = false;
 });
