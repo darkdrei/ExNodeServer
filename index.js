@@ -500,9 +500,9 @@ app.post('/upload',function(req,res){
 		var pedido = req.body['pedido'];
 		var tipo = req.body['tipo'];
 
-		var ID = session.get_session(django_id, usertype);
+	var cookieJar = session.get_jar(django_id);
 
-        if (ID) {
+        if (cookieJar) {
         	var cookieJar = session.get_jar(django_id);
         	var url = host + '/pedidos/confirmar/pws/';
 			if(tipo == 1){
