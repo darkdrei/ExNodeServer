@@ -631,10 +631,11 @@ function esperar_movimiento(identificador){
 }
 
 function cancelar_espera(identificador){
+	var empresa = session.get_data(identificador)['empresa'];
 	if (motorizado_detenido[identificador] != undefined && !motorizado_detenido[identificador]._called) {
 		clearTimeout(motorizado_detenido[identificador]);
 		motorizado_detenido[identificador] = undefined;
-		listening.add_messages_by_type('web', [message], function(django_id, sockets, message){
+		listening.add_messages_by_type('web-empresa-' + empresa, [message], function(django_id, sockets, message){
 			for(var s in sockets){
 				sockets[s].emit('motorizado-movimiento', {'identificador': identificador});
 			}

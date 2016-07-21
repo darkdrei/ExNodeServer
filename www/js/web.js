@@ -16,6 +16,7 @@ if (empresa && token) {
 socket.on('ionic-qr', function (msg){
 	document.getElementById("cell_id").value = msg;
 });
+
 socket.on('gps', function (msg){
 	if (motorizados[msg.django_id] == undefined) {
 		motorizados[msg.django_id] = {markers: [], marker: null};
@@ -53,9 +54,15 @@ socket.on('gps', function (msg){
 	});
 	map.setCenter(msg);
 });
+
 socket.on('motorizado-detenido', function(message) {
 	console.log(message);
 	motorizados[message.identificador].detenido = true;
+});
+
+socket.on('motorizado-movimiento', function(){
+    console.log(message);
+    motorizados[message.identificador].detenido = false;
 });
 
 socket.on('select-motorizado', function(message) {
