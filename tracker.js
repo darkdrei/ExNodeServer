@@ -10,20 +10,20 @@ module.exports = {
 			var track = mongoose.Schema({
 				'lat': String,
 				'lng': String,
-				'pedido': String,
-				'placa': String,
+				'empresa': String,
+				'retraso': Boolean,
 				'motorizado': String
 			});
 			this.Track = mongoose.model('Track', track);
 			if (callback){callback();}
 		}.bind(this));
 	},
-	track: function (pedido, placa, motorizado, lat, lng){
+	track: function (empresa, retraso, motorizado, lat, lng){
 		var moto = new this.Track({
 			'lat': lat,
 			'lng': lng,
-			'placa': placa,
-			'pedido': pedido,
+			'retraso': retraso,
+			'empresa': empresa,
 			'motorizado': motorizado
 		});
 		console.log("save");
@@ -32,8 +32,7 @@ module.exports = {
 	get_tracks: function (busqueda, callback) {
 		var q = {
 			'$or': [
-				{'placa': busqueda},
-				{'pedido': busqueda},
+				{'empresa': busqueda},
 				{'motorizado': {
 					'$regex': '.*' + busqueda + '.*'
 				}}

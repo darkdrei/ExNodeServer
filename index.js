@@ -28,13 +28,6 @@ var motorizado_detenido = {};
 
 io.on('connection', function(socket) {
 
-	/*tracker.setup(function(){
-		console.log("ok");
-		tracker.track('pedido1', 'placa1', 'motorizado perez', 10.3970683, -75.4925648);
-		tracker.get_tracks('pedido1', function(doc){
-			console.log(doc);
-		});
-	});*/
 	socket.on('ionic-qr', function(msg){
 		console.log('QR:');
 		console.log(msg);
@@ -282,6 +275,8 @@ io.on('connection', function(socket) {
 				cancelar_espera(django_id);
 			}
 			session.set_value(django_id, 'gps', message, usertype);
+
+			save_gps(message);
 
 			var empresa = session.get_data(django_id)['empresa'];
 			listening.add_messages_by_type('web-empresa-' + empresa, [message], function(django_id, sockets, message){
@@ -636,6 +631,7 @@ function esperar_movimiento(identificador){
 	var empresa = session.get_data(identificador)['empresa'];
 	if (motorizado_detenido[identificador] == undefined || motorizado_detenido[identificador]._called) {
 		motorizado_detenido[identificador] = setTimeout(function(){
+			session.get_data(identificador)['detenido'] = true;
 			listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
 				for(var s in sockets){
 					sockets[s].emit('motorizado-detenido', message);
@@ -646,9 +642,8 @@ function esperar_movimiento(identificador){
 }
 
 function cancelar_espera(identificador){
-	console.log("cancelar espera");
 	var empresa = session.get_data(identificador)['empresa'];
-
+	session.get_data(identificador)['detenido'] = false;
 	listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
 		for(var s in sockets){
 			sockets[s].emit('motorizado-movimiento', message);
@@ -657,7 +652,6 @@ function cancelar_espera(identificador){
 
 	if (motorizado_detenido[identificador] != undefined && !motorizado_detenido[identificador]._called) {
 		clearTimeout(motorizado_detenido[identificador]);
-		motorizado_detenido[identificador] = undefined;
 	};
 }
 
@@ -873,4 +867,18 @@ function clear_gps(cell_id){
 			sockets[s].emit('clear-gps', message);
 		}
 	});
+}
+
+function save_gps(message){
+	var empresa = session.get_data(message.django_id)['empresa'];
+	var detenido = session.get_data(identificador)['detenido'];
+	if (!message.error) {
+		tracker.setup(function(){
+			console.log("setup ok");
+			tracker.track(empresa, detenido, message.django_id, message.lat, message.lng);
+			tracker.get_tracks(message.django_id, function(doc){
+				console.log(doc);
+			});
+		});
+	};
 }
