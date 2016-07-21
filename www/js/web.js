@@ -88,7 +88,7 @@ socket.on('clear-gps', function(message) {
         for (var i = markers.length - 1; i >= 0; i--) {
             markers[i].setMap(null);
         };
-        motorizados[message.identificador] = {markers: [], marker: null};
+        motorizados[message.identificador] = undefined;
     }
 });
 
