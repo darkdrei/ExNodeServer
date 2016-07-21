@@ -76,6 +76,21 @@ socket.on('select-motorizado', function(message) {
     }
 });
 
+socket.on('stop-gps', function(message) {
+    if (motorizados[message.identificador] != undefined) {
+        var markers = motorizados[message.identificador].markers;
+        for (var i = markers.length - 1; i >= 0; i--) {
+            markers[i].setMap(null);
+        };
+        motorizados[message.identificador] = {markers: [], marker: null};
+    }
+
+    if(motorizados[message.identificador].marker){
+        motorizados[message.identificador].marker.setMap(null);
+        motorizados[message.identificador].marker = null;
+    }
+});
+
 var map;
 
 function initMap() {
