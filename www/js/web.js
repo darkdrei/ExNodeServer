@@ -17,8 +17,44 @@ socket.on('ionic-qr', function (msg){
 	document.getElementById("cell_id").value = msg;
 });
 
-socket.on('rutas', function(message){
-    console.log(message);
+socket.on('rutas', function(msg){
+    if (motorizados[msg.motorizado] == undefined) {
+        motorizados[msg.motorizado] = {markers: [], marker: null};
+    }
+
+    motorizados[msg.motorizado].detenido = msg.retraso;
+
+    if(motorizados[msg.motorizado].marker){
+        motorizados[msg.motorizado].marker.setMap(null);
+        motorizados[msg.motorizado].marker = null;
+    }
+
+    var cityCircle = new google.maps.Circle({
+        strokeColor: motorizados[msg.motorizado].detenido?'#FF0000':'#0B9444',
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: motorizados[msg.motorizado].detenido? '#FF0000':'#8DC63E',
+        fillOpacity: 0.8,
+        map: map,
+        center: msg,
+        radius: 10
+    });
+
+    motorizados[msg.motorizado].markers.push(cityCircle);
+
+
+    var icon = motorizados[msg.motorizado].detenido?'img/pin_red.svg':'img/pin.svg';
+    if (motorizados[msg.motorizado].seleccionado) {
+        icon = 'img/sel_pin.svg'
+    };
+    motorizados[msg.motorizado].marker = new google.maps.Marker({
+        position: msg,
+        map: map,
+        icon: icon,
+        title: 'my ID ' + msg.motorizado,
+        animation: google.maps.Animation.DROP
+    });
+    map.setCenter(msg);
 });
 
 socket.on('gps', function (msg){
