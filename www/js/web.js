@@ -108,7 +108,7 @@ socket.on('gps', function (msg){
 
 socket.on('get-data', function(msg) {
     var contentString = '<div id="content">'+
-      '<i class="material-icons">account_circle</i><span style="padding: 5px;">'+ msg.nombre + ' ' + msg.apellidos +'</span>'+
+      '<span style="padding: 5px;"><i class="material-icons">account_circle</i>'+ msg.nombre + ' ' + msg.apellidos +'</span>'+
       '<span></span>'+
       '</div>';
     console.log(msg);
