@@ -113,7 +113,7 @@ socket.on('get-data', function(msg) {
       '</div>';
     console.log(msg);
     infowindow.setContent('my ID ' + msg.motorizado);
-    infowindow.open(map,msg.motorizado);
+    infowindow.open(map,motorizados[msg.motorizado].marker);
 });
 
 socket.on('motorizado-detenido', function(message) {
