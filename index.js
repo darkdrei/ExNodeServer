@@ -26,6 +26,10 @@ var pedidos_auto = [];
 var motorizados_gps = {};
 var motorizado_detenido = {};
 
+tracker.setup(function(){
+	console.log("setup ok");
+});
+
 io.on('connection', function(socket) {
 
 	socket.on('ionic-qr', function(msg){
@@ -621,7 +625,6 @@ function delay_pedido(data){
 function en_movimiento(actual, anterior){
 	if (anterior) {
 		var distance = Math.sqrt(Math.pow((actual.lat - anterior.lat), 2) + Math.pow((actual.lng - anterior.lng), 2));
-		console.log([actual.lat, actual.lng], [anterior.lat, anterior.lng], distance);
 		return distance > 0.00487217386;
 	};
 	return true;
@@ -873,12 +876,9 @@ function save_gps(message){
 	var empresa = session.get_data(message.django_id)['empresa'];
 	var detenido = session.get_data(message.django_id)['detenido'];
 	if (!message.error) {
-		tracker.setup(function(){
-			console.log("setup ok");
-			tracker.track(empresa, detenido, message.django_id, message.lat, message.lng);
-			tracker.get_tracks(message.django_id, function(doc){
-				console.log(doc);
-			});
+		tracker.track(empresa, detenido, message.django_id, message.lat, message.lng);
+		tracker.get_tracks(message.django_id, function(doc){
+			console.log(doc);
 		});
 	};
 }
