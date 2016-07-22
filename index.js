@@ -457,7 +457,7 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('get-info', function(message) {
-		socket.emit('get-info', session.get_data(identificador));
+		socket.emit('get-info', session.get_data(message.identificador));
 	})
 
 	socket.on('get-data', function(message) {
