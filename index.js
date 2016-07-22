@@ -734,14 +734,13 @@ function get_data(cell_id, socket){
 			if (!error && response.statusCode == 200) {
 				var resp = JSON.parse(body);
 				resp = resp.object_list[0];
-				resp.motorizado = cell_id;
 				if (!resp) {
 					resp = {
 						nombre:'No',
 						apellidos: 'Registrado'
 					}
 				}
-
+				resp.motorizado = cell_id;
 				if (resp.foto) {
 					resp.foto = host + '/media/' + resp.foto;
 				};
