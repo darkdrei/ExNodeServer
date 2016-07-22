@@ -132,6 +132,9 @@ io.on('connection', function(socket) {
 			var empresa = message.empresa;
 			var token = message.token;
 			session.add_token(socket, token);
+			tracker.get_tracks(empresa, function(doc){
+				socket.emit('rutas', doc);
+			});
 			listening.add_session('web-empresa-' + empresa, '123', '123', socket);
 		};
 	});

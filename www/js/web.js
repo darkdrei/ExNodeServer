@@ -17,6 +17,10 @@ socket.on('ionic-qr', function (msg){
 	document.getElementById("cell_id").value = msg;
 });
 
+socket.on('rutas', function(message){
+    console.log(message);
+});
+
 socket.on('gps', function (msg){
 	if (motorizados[msg.django_id] == undefined) {
 		motorizados[msg.django_id] = {markers: [], marker: null};
