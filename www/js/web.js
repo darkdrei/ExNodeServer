@@ -108,8 +108,8 @@ socket.on('gps', function (msg){
 
 socket.on('get-data', function(msg) {
     var contentString = '<div id="content">'+
-      '<span><i class="material-icons">account_circle</i>'+ msg.nombre + ' ' + msg.apellidos +'</span><br>'+
-      '<span></span>'+
+      '<p><i class="material-icons">account_circle</i>'+ msg.nombre + ' ' + msg.apellidos +'</p>'+
+      '<p></p>'+
       '</div>';
     console.log(msg);
     infowindow.setContent(contentString);
