@@ -740,7 +740,6 @@ function get_data(cell_id, socket){
 						apellidos: 'Registrado'
 					}
 				}
-				resp.motorizado = cell_id;
 				if (resp.foto) {
 					resp.foto = host + '/media/' + resp.foto;
 				};

@@ -108,12 +108,12 @@ socket.on('gps', function (msg){
 
 socket.on('get-data', function(msg) {
     var contentString = '<div id="content">'+
-      '<span>Nombre: </span><span></span>'+
+      '<span>Nombre: </span><span>'+ msg.nombre + ' ' + msg.apellidos +'</span>'+
       '<span></span><span></span>'+
       '</div>';
     console.log(msg);
-    infowindow.setContent('my ID ' + msg.motorizado);
-    infowindow.open(map,motorizados[msg.motorizado].marker);
+    infowindow.setContent(contentString);
+    infowindow.open(map,motorizados[msg.identificador].marker);
 });
 
 socket.on('motorizado-detenido', function(message) {
