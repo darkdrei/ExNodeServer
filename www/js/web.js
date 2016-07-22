@@ -57,7 +57,7 @@ socket.on('rutas', function(msg){
     });
 
     motorizados[msg.motorizado].marker.addListener('click', function() {
-        socket.emit('get-info', {identificador: msg.motorizado})
+        socket.emit('get-data', {identificador: msg.motorizado})
     });
 
     map.setCenter(new google.maps.LatLng(msg.lat, msg.lng));
@@ -93,8 +93,7 @@ socket.on('gps', function (msg){
     };
 
     motorizados[msg.motorizado].marker.addListener('click', function() {
-        infowindow.setContent('my ID ' + msg.motorizado);
-        infowindow.open(map, motorizados[msg.motorizado].marker);
+        
     });
 
 	motorizados[msg.django_id].marker = new google.maps.Marker({
@@ -107,8 +106,14 @@ socket.on('gps', function (msg){
 	map.setCenter(msg);
 });
 
-socket.on('get-info', function(msg) {
+socket.on('get-data', function(msg) {
+    var contentString = '<div id="content">'+
+      '<span>Nombre: </span><span></span>'+
+      '<span></span><span></span>'+
+      '</div>';
     console.log(msg);
+    infowindow.setContent('my ID ' + msg.motorizado);
+    infowindow.open(map,msg.motorizado);
 });
 
 socket.on('motorizado-detenido', function(message) {
