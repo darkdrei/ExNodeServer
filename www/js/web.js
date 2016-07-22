@@ -8,6 +8,8 @@ var map;
 var empresa = urlObject({url: document.location.href}).parameters.empresa;
 var token = urlObject({url: document.location.href}).parameters.token;
 
+var infowindow = new google.maps.InfoWindow();
+
 if (empresa && token) {
 	console.log("me loguere con la empresa: ", empresa);
 	socket.emit('login',{usertype:'WEB', empresa: empresa, token: token});
@@ -54,6 +56,12 @@ socket.on('rutas', function(msg){
         title: 'my ID ' + msg.motorizado,
         animation: google.maps.Animation.DROP
     });
+
+    motorizados[msg.motorizado].marker.addListener('click', function() {
+        infowindow.setContent('my ID ' + msg.motorizado);
+        infowindow.open(map, motorizados[msg.motorizado].marker);
+    });
+
     map.setCenter(new google.maps.LatLng(msg.lat, msg.lng));
 });
 
