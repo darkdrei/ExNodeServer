@@ -54,7 +54,7 @@ socket.on('rutas', function(msg){
         title: 'my ID ' + msg.motorizado,
         animation: google.maps.Animation.DROP
     });
-    map.setCenter(msg);
+    map.setCenter(new google.maps.LatLng(msg.lat, msg.lng));
 });
 
 socket.on('gps', function (msg){
