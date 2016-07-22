@@ -57,7 +57,7 @@ socket.on('rutas', function(msg){
     });
 
     motorizados[msg.motorizado].marker.addListener('click', function() {
-        socket.emit('get-data', {identificador: msg.motorizado})
+        socket.emit('get-data', {cell_id: msg.motorizado})
     });
 
     map.setCenter(new google.maps.LatLng(msg.lat, msg.lng));
