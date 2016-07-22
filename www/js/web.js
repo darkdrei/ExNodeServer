@@ -36,7 +36,7 @@ socket.on('rutas', function(msg){
         fillColor: motorizados[msg.motorizado].detenido? '#FF0000':'#8DC63E',
         fillOpacity: 0.8,
         map: map,
-        center: msg,
+        center: new google.maps.LatLng(msg.lat, msg.lng),
         radius: 10
     });
 
@@ -48,7 +48,7 @@ socket.on('rutas', function(msg){
         icon = 'img/sel_pin.svg'
     };
     motorizados[msg.motorizado].marker = new google.maps.Marker({
-        position: msg,
+        position: new google.maps.LatLng(msg.lat, msg.lng),
         map: map,
         icon: icon,
         title: 'my ID ' + msg.motorizado,
