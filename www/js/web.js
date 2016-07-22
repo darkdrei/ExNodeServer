@@ -8,7 +8,6 @@ var map;
 var empresa = urlObject({url: document.location.href}).parameters.empresa;
 var token = urlObject({url: document.location.href}).parameters.token;
 
-var infowindow = new google.maps.InfoWindow();
 
 if (empresa && token) {
 	console.log("me loguere con la empresa: ", empresa);
@@ -143,10 +142,11 @@ socket.on('clear-gps', function(message) {
 var map;
 
 function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 10.3970683, lng: -75.4925649},
-    zoom: 15
-  });
+    infowindow = new google.maps.InfoWindow();
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 10.3970683, lng: -75.4925649},
+        zoom: 15
+    });
 }
 
 function urlObject(options) {
