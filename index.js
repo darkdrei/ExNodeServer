@@ -877,8 +877,5 @@ function save_gps(message){
 	var detenido = session.get_data(message.django_id)['detenido'];
 	if (!message.error) {
 		tracker.track(empresa, detenido, message.django_id, message.lat, message.lng);
-		tracker.get_tracks(message.django_id, function(doc){
-			console.log(doc);
-		});
 	};
 }
