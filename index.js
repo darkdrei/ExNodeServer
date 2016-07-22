@@ -871,7 +871,7 @@ function clear_gps(cell_id){
 
 function save_gps(message){
 	var empresa = session.get_data(message.django_id)['empresa'];
-	var detenido = session.get_data(identificador)['detenido'];
+	var detenido = session.get_data(message.django_id)['detenido'];
 	if (!message.error) {
 		tracker.setup(function(){
 			console.log("setup ok");
