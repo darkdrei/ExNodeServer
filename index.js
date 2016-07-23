@@ -215,10 +215,11 @@ io.on('connection', function(socket) {
 			var tipo = session.get_data(django_id)['tipo'];
 			recojer_pedido(message.pedido_id, message.cell_id, message.tipo);
 			var messages = listening.get_messages(tipo, django_id);
-			console.log('recoger', messages);
 			for (var i = messages.length - 1; i >= 0; i--) {
 				var m = messages[i];
+				console.log('recoger', messages);
 				if (m && m.id == messages.pedido_id && m.tipo == message.tipo) {
+					console.log('modificare este', m.id);
 					m.estado = "recogido";
 				}
 			}
