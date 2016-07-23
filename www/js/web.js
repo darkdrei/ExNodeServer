@@ -92,10 +92,6 @@ socket.on('gps', function (msg){
         icon = 'img/sel_pin.svg'
     };
 
-    motorizados[msg.django_id].marker.addListener('click', function() {
-        socket.emit('get-data', {cell_id: msg.django_id})
-    });
-
 	motorizados[msg.django_id].marker = new google.maps.Marker({
 		position: msg,
 		map: map,
@@ -103,6 +99,11 @@ socket.on('gps', function (msg){
 		title: 'my ID ' + msg.django_id,
 		animation: google.maps.Animation.DROP
 	});
+
+    motorizados[msg.django_id].marker.addListener('click', function() {
+        socket.emit('get-data', {cell_id: msg.django_id})
+    });
+    
 	map.setCenter(msg);
 });
 
