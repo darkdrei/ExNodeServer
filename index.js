@@ -217,7 +217,7 @@ io.on('connection', function(socket) {
 			var messages = listening.get_messages(tipo, django_id);
 			for (var i = messages.length - 1; i >= 0; i--) {
 				var m = messages[i];
-				console.log('recoger', messages);
+				console.log('recoger', m);
 				if (m && m.id == messages.pedido_id && m.tipo == message.tipo) {
 					console.log('modificare este', m.id);
 					m.estado = "recogido";
