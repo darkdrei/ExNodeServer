@@ -52,7 +52,7 @@ socket.on('rutas', function(msg){
         position: new google.maps.LatLng(msg.lat, msg.lng),
         map: map,
         icon: icon,
-        title: 'my ID ' + msg.motorizado,
+        title: 'motorizado: ' + msg.motorizado,
         animation: google.maps.Animation.DROP
     });
 
@@ -93,7 +93,7 @@ socket.on('gps', function (msg){
     };
 
     motorizados[msg.motorizado].marker.addListener('click', function() {
-        
+        socket.emit('get-data', {cell_id: msg.motorizado})
     });
 
 	motorizados[msg.django_id].marker = new google.maps.Marker({
