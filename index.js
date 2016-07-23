@@ -872,7 +872,7 @@ function send_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
 	for(var i in messages){
 		var message = messages[i];
-		console.log('message', message.id, socket.id);
+		console.log('message', message.id,message.estado, socket.id);
 		socket.emit(message.emit, message);
 	}
 }
