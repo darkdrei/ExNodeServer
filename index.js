@@ -69,7 +69,7 @@ io.on('connection', function(socket) {
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
-						console.log('web-login success', socket.id);
+						console.log('web-login success');
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								session.add_jar(django_id, cookieJar);
@@ -78,7 +78,6 @@ io.on('connection', function(socket) {
 								socket.emit('web-success-login');
 								socket.emit('list-pedidos', pedidos_pendientes);
 								listening.add_session(data.tipo, django_id, django_id, socket);
-								send_messages(data.tipo, django_id, socket);
 								socket.on('disconnect', function(){
 									listening.delte_session(data.tipo, django_id, django_id, socket.id);
 								});
@@ -453,6 +452,20 @@ io.on('connection', function(socket) {
 
 		if(ID){
 			numero_pedido(message.cell_id)		
+		}
+	});
+
+	socket.on('get-messages', function(message) {
+
+		var tipo = session.get_data(message.cell_id)['tipo'];
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			send_messages(tipo, message.cell_id, socket);
 		}
 	});
 
