@@ -69,7 +69,7 @@ io.on('connection', function(socket) {
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
-						console.log(data);
+						console.log('web-login success');
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								session.add_jar(django_id, cookieJar);
@@ -444,7 +444,7 @@ io.on('connection', function(socket) {
 	
 	socket.on('numero-pedido', function(message) {
 
-		console.log('numero-pedido', message);
+		//console.log('numero-pedido', message);
 
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
@@ -852,7 +852,7 @@ function send_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
 	for(var i in messages){
 		var message = messages[i];
-		console.log('message',message);
+		console.log('message', message.id, socket.id);
 		socket.emit(message.emit, message);
 	}
 }
@@ -863,7 +863,7 @@ function send_unread_messages(tipo, django_id, socket){
 	for(var i in messages){
 		var message = messages[i];
 		if (message['_visited_'].length == 0) {
-			console.log('voy a mandar', message.emit);
+			//console.log('voy a mandar', message.emit);
 			socket.emit(message.emit, message);
 		};
 	}
