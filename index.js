@@ -212,6 +212,7 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 
 		if(ID){
+			var tipo = session.get_data(django_id)['tipo'];
 			recojer_pedido(message.pedido_id, message.cell_id, message.tipo);
 			var messages = listening.get_messages(tipo, django_id);
 			for (var i = messages.length - 1; i >= 0; i--) {
