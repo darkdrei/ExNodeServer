@@ -394,6 +394,7 @@ io.on('connection', function(socket) {
 		if(true){//ID){
 			var pedido = message.pedido;
 			pedido['emit'] = 'modificar-pedido';
+			pedido.estado = 'asignado';
 			pedido.tipo = message.tipo;
 			var identificador = pedido.motorizado;
 			listening.add_messages(1, identificador, [pedido]);
