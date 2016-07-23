@@ -69,7 +69,7 @@ io.on('connection', function(socket) {
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
-						console.log('web-login success');
+						console.log('web-login success', socket.id);
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								session.add_jar(django_id, cookieJar);
