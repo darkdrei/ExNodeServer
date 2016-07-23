@@ -221,6 +221,8 @@ io.on('connection', function(socket) {
 				if (m && m.id == message.pedido_id && m.tipo == message.tipo) {
 					console.log('modificare este', m.id);
 					m.estado = "recogido";
+					socket.emit('modificar-pedido', m);
+					return;
 				}
 			}
 		}
