@@ -691,10 +691,7 @@ function aceptar_pedido(pedido_id, cell_id){
 function numero_pedido(cell_id){
 	var cookieJar = session.get_jar(cell_id);
 	var tipo = session.get_data(cell_id)['tipo'];
-	console.log("enviare esto", {
-				motorizado: cell_id,
-				tipo: tipo
-			});
+
 	request.post(
 		{
 			url: host + '/motorizado/get/pedidos/', jar:cookieJar, form: 
@@ -716,7 +713,7 @@ function numero_pedido(cell_id){
 					send_unread_messages(tipo, cell_id, s);
 				}
 			}
-			console.log(body)
+			//console.log(body)
 		}
 	)
 }
