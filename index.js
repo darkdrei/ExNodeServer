@@ -186,6 +186,7 @@ io.on('connection', function(socket) {
 
 			var pedido = message.pedido;
 			pedido['emit'] = 'asignar-pedido';
+			pedido.estado = 'asignado';
 			pedido.tipo = message.tipo;
 			var identificador = pedido.motorizado;
 			listening.add_messages(1, identificador, [pedido]);
@@ -211,7 +212,14 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 
 		if(ID){
-			recojer_pedido(message.pedido_id, message.cell_id, message.tipo)			
+			recojer_pedido(message.pedido_id, message.cell_id, message.tipo);
+			var messages = listening.get_messages(tipo, django_id);
+			for (var i = messages.length - 1; i >= 0; i--) {
+				var m = messages[i];
+				if (m.id == messages.pedido_id && m.tipo == message.tipo) {
+					m.estado = "recogido";
+				}
+			}
 		}
 	});
 
