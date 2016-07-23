@@ -218,7 +218,7 @@ io.on('connection', function(socket) {
 			for (var i = messages.length - 1; i >= 0; i--) {
 				var m = messages[i];
 				console.log('recoger', m);
-				if (m && m.id == messages.pedido_id && m.tipo == message.tipo) {
+				if (m && m.id == message.pedido_id && m.tipo == message.tipo) {
 					console.log('modificare este', m.id);
 					m.estado = "recogido";
 				}
