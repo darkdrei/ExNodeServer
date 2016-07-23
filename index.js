@@ -313,7 +313,7 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 		console.log('stop-gps')
 		if(ID){
-			clear_gps(message.cell_id)
+			clear_gps(message.cell_id);
 		}
 	});
 
@@ -895,6 +895,7 @@ function send_unread_messages(tipo, django_id, socket){
 
 function clear_gps(cell_id){
 	var empresa = session.get_data(cell_id)['empresa'];
+	tracker.delete_tracks({'motorizado': cell_id}, function(err){});
 	listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': cell_id}], function(django_id, sockets, message){
 		for(var s in sockets){
 			sockets[s].emit('clear-gps', message);

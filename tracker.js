@@ -44,5 +44,11 @@ module.exports = {
 				callback(doc);
 			});
 		});
+	},
+	delete_tracks: function (busqueda, callback) {
+		
+		this.Track.remove(busqueda, function(err){
+				callback(err);
+		});
 	}
 };
