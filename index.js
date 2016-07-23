@@ -850,9 +850,9 @@ function delay_auto(pedido){
 
 function send_messages(tipo, django_id, socket){
 	var messages = listening.get_messages(tipo, django_id);
-	console.log('messages',messages);
 	for(var i in messages){
 		var message = messages[i];
+		console.log('message',message);
 		socket.emit(message.emit, message);
 	}
 }
