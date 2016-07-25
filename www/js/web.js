@@ -132,7 +132,7 @@ socket.on('motorizado-movimiento', function(message){
 });
 
 socket.on('select-motorizado', function(message) {
-    for (var i = motorizados.length - 1; i >= 0; i--) {
+    for (var i in motorizados) {
         var motorizado = motorizados[i];
         motorizado.seleccionado = false;
     };
