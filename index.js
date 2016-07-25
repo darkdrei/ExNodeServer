@@ -567,12 +567,12 @@ app.post('/upload',function(req,res){
 					console.log("status response", response.statusCode);
 					console.log("response", body);
 					if (!error && response.statusCode == 200) {
-						return res.end("File is uploaded");
 						listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
 							for(var s in sockets){
 								sockets[s].emit('pedido-entregado', {motorizado: session.get_data(django_id), pedido: pedido_id});
 							}
 						});
+						return res.end("File is uploaded");
 					}else{
 						return res.end("Error post");
 					}
