@@ -567,9 +567,9 @@ app.post('/upload',function(req,res){
 					console.log("status response", response.statusCode);
 					console.log("response", body);
 					if (!error && response.statusCode == 200) {
-						listening.add_messages_by_type('web-empresa-' + empresa, [{'identificador': identificador}], function(django_id, sockets, message){
+						listening.add_messages_by_type('web-empresa-' + empresa, [{motorizado: session.get_data(django_id), pedido: pedido}], function(django_id, sockets, message){
 							for(var s in sockets){
-								sockets[s].emit('pedido-entregado', {motorizado: session.get_data(django_id), pedido: pedido_id});
+								sockets[s].emit('pedido-entregado', message);
 							}
 						});
 						return res.end("File is uploaded");
