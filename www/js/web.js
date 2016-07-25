@@ -159,6 +159,8 @@ socket.on('clear-gps', function(message) {
 });
 
 socket.on('pedido-entregado', function(message){
+    console.log(message);
+    
     notifyMe("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache, function(event) {
         event.preventDefault(); // prevent the browser from focusing the Notification's tab
         window.open('http://www.mozilla.org', '_blank');
