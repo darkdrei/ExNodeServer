@@ -567,6 +567,7 @@ app.post('/upload',function(req,res){
 					console.log("status response", response.statusCode);
 					console.log("response", body);
 					if (!error && response.statusCode == 200) {
+						console.log('empresa', empresa);
 						listening.add_messages_by_type('web-empresa-' + empresa, [{motorizado: session.get_data(django_id), pedido: pedido}], function(django_id, sockets, message){
 							for(var s in sockets){
 								sockets[s].emit('pedido-entregado', message);
