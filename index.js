@@ -522,6 +522,10 @@ app.get('/img/pin_red.svg', function(req, res){
   res.sendFile(__dirname + '/www/img/pin_red.svg');
 });
 
+app.get('/img/icon.png', function(req, res){
+  res.sendFile(__dirname + '/www/img/icon.png');
+});
+
 app.get('/cell', function(req, res){
   res.sendFile(__dirname + '/www/cell.html');
 });
