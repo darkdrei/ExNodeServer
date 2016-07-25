@@ -135,6 +135,10 @@ socket.on('select-motorizado', function(message) {
     for (var i in motorizados) {
         var motorizado = motorizados[i];
         motorizado.seleccionado = false;
+        if(motorizado.marker){
+            var icon = motorizado.detenido?'img/pin_red.svg':'img/pin.svg';
+            motorizado.marker.setIcon(icon);
+        }
     };
     if (motorizados[message.motorizado]) {
         motorizados[message.motorizado].seleccionado = true;
