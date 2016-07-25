@@ -158,6 +158,10 @@ socket.on('clear-gps', function(message) {
     }
 });
 
+socket.on('pedido-entregado', function(message){
+    console.log(message);
+})
+
 var map;
 
 function initMap() {
