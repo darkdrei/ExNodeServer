@@ -568,6 +568,7 @@ app.post('/upload',function(req,res){
 					console.log("response", body);
 					if (!error && response.statusCode == 200) {
 						var json = JSON.parse(body);
+						json.imagen = host + "/media/" + json.imagen;
 						listening.add_messages_by_type('web-empresa-' + empresa, [{motorizado: session.get_data(django_id), pedido: json, }], function(django_id, sockets, message){
 							for(var s in sockets){
 								console.log('pedido-entregado', message)
