@@ -267,7 +267,11 @@ function notifyMe(message) {
     Notification.requestPermission(function (permission) {
       // If the user accepts, let's create a notification
       if (permission === "granted") {
-        var notification = new Notification(message);
+        var options = {
+            body: message,
+            icon: "/img/icon.png"
+        }
+        var notification = new Notification("Express del norte", options);
       }
     });
   }
