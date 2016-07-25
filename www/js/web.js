@@ -159,7 +159,10 @@ socket.on('clear-gps', function(message) {
 });
 
 socket.on('pedido-entregado', function(message){
-    console.log("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache);
+    notifyMe("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache, function(event) {
+        event.preventDefault(); // prevent the browser from focusing the Notification's tab
+        window.open('http://www.mozilla.org', '_blank');
+    });
 })
 
 var map;
@@ -254,7 +257,7 @@ function urlObject(options) {
     return urlObj;
 }
 
-function notifyMe(message) {
+function notifyMe(message, click_event) {
   // Let's check if the browser supports notifications
   if (!("Notification" in window)) {
     alert("This browser does not support desktop notification");
@@ -268,6 +271,7 @@ function notifyMe(message) {
             icon: "/img/icon.png"
         }
     var notification = new Notification("Express del norte", options);
+    notification.onclick = click_event;
   }
 
   // Otherwise, we need to ask the user for permission
@@ -280,6 +284,7 @@ function notifyMe(message) {
             icon: "/img/icon.png"
         }
         var notification = new Notification("Express del norte", options);
+        notification.onclick = click_event;
       }
     });
   }
