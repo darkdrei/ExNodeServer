@@ -103,7 +103,7 @@ socket.on('gps', function (msg){
     motorizados[msg.django_id].marker.addListener('click', function() {
         socket.emit('get-data', {cell_id: msg.django_id})
     });
-    
+
 	map.setCenter(msg);
 });
 
@@ -119,12 +119,16 @@ socket.on('get-data', function(msg) {
 
 socket.on('motorizado-detenido', function(message) {
 	console.log(message);
-	motorizados[message.identificador].detenido = true;
+    if (motorizados[message.identificador]) {
+        motorizados[message.identificador].detenido = true;
+    };
 });
 
 socket.on('motorizado-movimiento', function(message){
     console.log(message);
-    motorizados[message.identificador].detenido = false;
+    if (motorizados[message.identificador]) {
+        motorizados[message.identificador].detenido = false;
+    };
 });
 
 socket.on('select-motorizado', function(message) {
@@ -134,7 +138,7 @@ socket.on('select-motorizado', function(message) {
             motorizados[message.motorizado].marker.setIcon('img/sel_pin.svg');
         }
     }else{
-        Materialize.toast('Este motorizado no tiene rutas asignadas', 4000)
+        notifyMe('Este motorizado no tiene rutas asignadas');
     }
 });
 
@@ -244,4 +248,30 @@ function urlObject(options) {
     };
 
     return urlObj;
+}
+
+function notifyMe(message) {
+  // Let's check if the browser supports notifications
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+
+  // Let's check whether notification permissions have already been granted
+  else if (Notification.permission === "granted") {
+    // If it's okay let's create a notification
+    var notification = new Notification(message);
+  }
+
+  // Otherwise, we need to ask the user for permission
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      // If the user accepts, let's create a notification
+      if (permission === "granted") {
+        var notification = new Notification(message);
+      }
+    });
+  }
+
+  // At last, if the user has denied notifications, and you 
+  // want to be respectful there is no need to bother them any more.
 }
