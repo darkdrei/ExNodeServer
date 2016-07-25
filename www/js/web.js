@@ -132,6 +132,10 @@ socket.on('motorizado-movimiento', function(message){
 });
 
 socket.on('select-motorizado', function(message) {
+    for (var i = motorizados.length - 1; i >= 0; i--) {
+        var motorizado = motorizados[i];
+        motorizado.seleccionado = false;
+    };
     if (motorizados[message.motorizado]) {
         motorizados[message.motorizado].seleccionado = true;
         if(motorizados[message.motorizado].marker){
@@ -159,8 +163,6 @@ socket.on('clear-gps', function(message) {
 });
 
 socket.on('pedido-entregado', function(message){
-    console.log(message, urlObject({url: document.location.href}));
-
     notifyMe("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache, function(event) {
         event.preventDefault(); // prevent the browser from focusing the Notification's tab
         window.open(message.pedido.imagen, '_blank');
