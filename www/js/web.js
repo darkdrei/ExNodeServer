@@ -163,7 +163,7 @@ socket.on('pedido-entregado', function(message){
 
     notifyMe("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache, function(event) {
         event.preventDefault(); // prevent the browser from focusing the Notification's tab
-        window.open('http://www.mozilla.org', '_blank');
+        window.open(message.pedido.imagen, '_blank');
     });
 })
 
