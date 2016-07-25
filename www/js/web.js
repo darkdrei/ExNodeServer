@@ -159,7 +159,7 @@ socket.on('clear-gps', function(message) {
 });
 
 socket.on('pedido-entregado', function(message){
-    console.log(message);
+    console.log("El motorizado " + message.motorizado.nombre + " a entregado el pedido con el consecutivo " + message.pedido._pedido_cache);
 })
 
 var map;
