@@ -780,7 +780,7 @@ function set_password(cell_id, password){
 
 	request.post(
 		{
-			url: host + '/motorizado/get/pedidos/', jar:cookieJar, form: 
+			url: host + '/usuario/set/password/', jar:cookieJar, form: 
 			{
 				identificador: cell_id,
 				password: password
