@@ -469,6 +469,23 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('set-password', function(message) {
+
+		//console.log('numero-pedido', message);
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			var password = message['password'];
+
+			set_password(django_id, password);
+		}
+	});
+
+
 	socket.on('get-messages', function(message) {
 
 		var tipo = session.get_data(message.cell_id)['tipo'];
@@ -744,6 +761,37 @@ function numero_pedido(cell_id){
 				console.log("hubo un error servicio motorizad_get_pedidos");
 			}
 			listening.add_messages(tipo, cell_id, [{numero_pedidos: body, emit:'numero-pedido'}]);
+			var sessions = listening.get_sessions(tipo, cell_id);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(tipo, cell_id, s);
+				}
+			}
+			//console.log(body)
+		}
+	)
+}
+
+function set_password(cell_id, password){
+	var cookieJar = session.get_jar(cell_id);
+	var tipo = session.get_data(cell_id)['tipo'];
+
+	request.post(
+		{
+			url: host + '/motorizado/get/pedidos/', jar:cookieJar, form: 
+			{
+				identificador: cell_id,
+				password: password
+			} 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio motorizad_get_pedidos");
+			}
+			listening.add_messages(tipo, cell_id, [{set_password: body, status: response.statusCode,emit:'set-password'}]);
 			var sessions = listening.get_sessions(tipo, cell_id);
 			for(var i in sessions){
 				var session = sessions[i];
