@@ -896,7 +896,7 @@ function confirmar_pedido(pedido_id, cell_id, tipo){
 			}else{
 				console.log("hubo un error servicio recoger_pedido");
 			}
-			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, emit:'confirmar-pedido'}]);
+			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, tipo: tipo, emit:'confirmar-pedido'}]);
 			var sessions = listening.get_sessions(tipo, cell_id);
 			for(var i in sessions){
 				var session = sessions[i];
