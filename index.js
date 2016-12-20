@@ -228,6 +228,21 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('confirmar-pedido', function(message) {
+
+		console.log('confirmar-pedido');
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			var tipo = session.get_data(django_id)['tipo'];
+			confirmar_pedido(message.pedido_id, message.cell_id, message.tipo);
+		}
+	});
+
 	socket.on('pedido-recibido', function(message) {
 
 		console.log('pedido-recibido');
@@ -855,6 +870,40 @@ function recojer_pedido(pedido_id, cell_id, tipo){
 			if (!error && response.statusCode == 200) {
 			}else{
 				console.log("hubo un error servicio recoger_pedido");
+			}
+			console.log(body)
+		}
+	)
+}
+
+function confirmar_pedido(pedido_id, cell_id, tipo){
+	var cookieJar = session.get_jar(cell_id);
+	var url = host + '/pedidos/confirmar/pws/';
+	if(tipo == 1){
+		url = host + '/pedidos/confirmar/pplataforma/';
+	}
+	console.log("mandare a la url ", url);
+	request.post(
+		{
+			url: url, jar:cookieJar, form: 
+			{
+				pedido: pedido_id,	
+				motorizado: cell_id,
+			}
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio recoger_pedido");
+			}
+			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, emit:'confirmar-pedido'}]);
+			var sessions = listening.get_sessions(tipo, cell_id);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(tipo, cell_id, s);
+				}
 			}
 			console.log(body)
 		}
