@@ -868,7 +868,7 @@ function motivo_cancelar(cell_id, socket){
 		function (error, response, body) {
 			if (!error && response.statusCode == 200) {
 				var resp = JSON.parse(body);
-				resp = resp.object_list[0];
+				resp = resp.object_list;
 				console.log(resp);
 				socket.emit('motivo-cancelar', resp);
 			}else{
