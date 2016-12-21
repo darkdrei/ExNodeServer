@@ -523,6 +523,11 @@ io.on('connection', function(socket) {
 		console.log('get-data', message);
 		get_data(message.cell_id, socket)
 	});
+
+	socket.on('motivo-cancelar', function(message) {
+		console.log('motivo-cancelar', message);
+		motivo_cancelar(message.cell_id, socket)
+	});
 });
 
 app.get('/', function(req, res){
@@ -846,6 +851,28 @@ function get_data(cell_id, socket){
 				socket.emit('get-data', resp);
 			}else{
 				console.log("hubo un error servicio motorizado_get_info");
+			}
+		}
+	)
+}
+
+function motivo_cancelar(cell_id, socket){
+	var cookieJar = session.get_jar(cell_id);
+	console.log("enviare esto", {
+				motorizado: cell_id,
+			});
+	request(
+		{
+			url: host + 'pedidos/ws/motivos/cancelacion/?q='+cell_id 
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+				var resp = JSON.parse(body);
+				resp = resp.object_list[0];
+				console.log(resp);
+				socket.emit('motivo-cancelar', resp);
+			}else{
+				console.log("hubo un error servicio cancelacion");
 			}
 		}
 	)
