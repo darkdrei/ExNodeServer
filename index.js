@@ -872,7 +872,7 @@ function motivo_cancelar(cell_id, socket){
 				console.log(resp);
 				socket.emit('motivo-cancelar', resp);
 			}else{
-				console.log("hubo un error servicio cancelacion");
+				console.log("hubo un error servicio cancelacion ", response.statusCode);
 			}
 		}
 	)
