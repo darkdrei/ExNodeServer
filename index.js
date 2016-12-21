@@ -243,6 +243,21 @@ io.on('connection', function(socket) {
 		}
 	});
 
+	socket.on('cancelar-pedido', function(message) {
+
+		console.log('cancelar-pedido');
+
+		var django_id = message['django_id'];
+		var usertype = message['usertype'];
+
+		var ID = session.get_session(django_id, usertype);
+
+		if(ID){
+			var tipo = session.get_data(django_id)['tipo'];
+			cancelar_pedido(message.pedido_id, message.cell_id, message.tipo, message.motivo, message.observacion);
+		}
+	});
+
 	socket.on('pedido-recibido', function(message) {
 
 		console.log('pedido-recibido');
@@ -916,6 +931,42 @@ function confirmar_pedido(pedido_id, cell_id, tipo){
 			{
 				pedido: pedido_id,	
 				motorizado: cell_id,
+			}
+		},
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+			}else{
+				console.log("hubo un error servicio recoger_pedido");
+			}
+			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, tipo: tipo, emit:'confirmar-pedido'}]);
+			var sessions = listening.get_sessions(tipo, cell_id);
+			for(var i in sessions){
+				var session = sessions[i];
+				for(var j in session){
+					var s = session[j];
+					send_unread_messages(tipo, cell_id, s);
+				}
+			}
+			console.log(body)
+		}
+	)
+}
+
+function cancelar_pedido(pedido_id, cell_id, tipo, motivo, observacion){
+	var cookieJar = session.get_jar(cell_id);
+	var url = host + '/pedidos/cancelar/pws/';
+	if(tipo == 1){
+		url = host + '/pedidos/cancelar/pplataforma/';
+	}
+	console.log("mandare a la url ", url);
+	request.post(
+		{
+			url: url, jar:cookieJar, form: 
+			{
+				pedido: pedido_id,	
+				motorizado: cell_id,
+				motivo: motivo,
+				observacion: observacion
 			}
 		},
 		function (error, response, body) {
