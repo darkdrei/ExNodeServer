@@ -650,6 +650,8 @@ app.post('/cancel',function(req,res){
 		var usertype = req.body['usertype'];
 		var pedido = req.body['pedido'];
 		var tipo = req.body['tipo'];
+		var motivo = req.body['motivo'];
+		var observacion = req.body['observacion'];
 
 		var ID = session.get_session(django_id, usertype);
 
@@ -665,6 +667,8 @@ app.post('/cancel',function(req,res){
 					{
 						pedido: pedido,
 						motorizado: django_id,
+						motivo: motivo,
+						observacion: observacion,
 						imagen: fs.createReadStream(__dirname + "/" +req.file.path),
 					} 
 				},
@@ -974,7 +978,7 @@ function cancelar_pedido(pedido_id, cell_id, tipo, motivo, observacion){
 			}else{
 				console.log("hubo un error servicio recoger_pedido");
 			}
-			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, tipo: tipo, emit:'confirmar-pedido'}]);
+			listening.add_messages(tipo, cell_id, [{pedido_id: pedido_id, tipo: tipo, emit:'cancelar-pedido'}]);
 			var sessions = listening.get_sessions(tipo, cell_id);
 			for(var i in sessions){
 				var session = sessions[i];
