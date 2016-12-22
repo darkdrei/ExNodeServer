@@ -887,7 +887,7 @@ function tecno_soat(cell_id, socket){
 			});
 	request(
 		{
-			url: host + '/motorizado/ws/valid/tecsoap/?q='+cell_id 
+			url: host + '/motorizado/ws/valid/tecsoap/?a='+cell_id 
 		},
 		function (error, response, body) {
 			if (!error && response.statusCode == 200) {
