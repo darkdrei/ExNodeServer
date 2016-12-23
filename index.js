@@ -413,7 +413,7 @@ io.on('connection', function(socket) {
 	});
 	
 	socket.on('modificar-motorizado-pedido', function(message) {
-		var id = message['django_id'];
+ 		var id = message['django_id'];
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
@@ -1020,6 +1020,7 @@ function auto_asignar(pedido, motorizado_json){
 
 				for(var i in sessions){
 					var session = sessions[i];
+					console.log("autoasignar", session);
 					for(var s in session){
 						var socket = session[s];
 						socket.emit('asignar-pedido', pedido);
