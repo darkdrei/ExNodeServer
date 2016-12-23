@@ -47,7 +47,6 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		var ID = session.get_session(django_id, usertype);
-		//console.log('identify', {"ID": ID});
 		socket.emit('identify', {"ID": ID});
 		if (ID){
 			session.clear(django_id, usertype);
@@ -69,7 +68,6 @@ io.on('connection', function(socket) {
 				function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var data = JSON.parse(body);
-						console.log('web-login success');
 						session.login(django_id, username, password, usertype, function (success){
 							if (success){
 								session.add_jar(django_id, cookieJar);
@@ -164,7 +162,6 @@ io.on('connection', function(socket) {
 					});
 					listening.add_messages_by_type(1, [pedido], function(django_id, sockets, message){
 						var tienda = session.get_data(django_id)['tienda'];
-						console.log(tienda, message.tienda, tienda == message.tienda)
 						if (tienda == message.tienda[0].id) {
 							for(var s in sockets){
 								sockets[s].emit('notify-pedido', message);
@@ -181,7 +178,6 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-		console.log('asignar-pedido', message);
 		if(true){//ID){
 
 			var pedido = message.pedido;
@@ -204,8 +200,6 @@ io.on('connection', function(socket) {
 
 	socket.on('recojer-pedido', function(message) {
 
-		console.log('recojer-pedido');
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -217,9 +211,7 @@ io.on('connection', function(socket) {
 			var messages = listening.get_messages(tipo, django_id);
 			for (var i = messages.length - 1; i >= 0; i--) {
 				var m = messages[i];
-				console.log('recoger', m);
 				if (m && m.id == message.pedido_id && m.tipo == message.tipo) {
-					console.log('modificare este', m.id);
 					m.estado = "recogido";
 					socket.emit('modificar-pedido', m);
 					return;
@@ -229,8 +221,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('confirmar-pedido', function(message) {
-
-		console.log('confirmar-pedido');
 
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
@@ -244,9 +234,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('cancelar-pedido', function(message) {
-
-		console.log('cancelar-pedido');
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -259,9 +246,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('pedido-recibido', function(message) {
-
-		console.log('pedido-recibido');
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -273,9 +257,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('accept-pedido', function(message) {
-
-		console.log('accept-pedido');
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -285,8 +266,8 @@ io.on('connection', function(socket) {
 			var index = pedidos_pendientes.findIndex(function(pedido){
 				return pedido.id == message.pedido_id;
 			});
-			
-			console.log('accept-pedido', message, index, pedidos_pendientes[index]);
+
+
 			aceptar_pedido(message.pedido_id, message.cell_id);
 
 			if (index > -1) {
@@ -317,7 +298,6 @@ io.on('connection', function(socket) {
 		var ID = session.get_session(django_id, usertype);
 
 		if(ID){
-			//console.log('GPS:', message, ID['gps'], en_movimiento(message, ID['gps']));
 			if(!en_movimiento(message, ID['gps'])){
 				esperar_movimiento(django_id);
 			}else{
@@ -341,7 +321,6 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		var ID = session.get_session(django_id, usertype);
-		console.log('stop-gps')
 		if(ID){
 			clear_gps(message.cell_id);
 		}
@@ -352,8 +331,6 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		var ID = session.get_session(django_id, usertype);
-
-		console.log('response', message);
 
 		if(ID){
 			var pedido = message.pedido
@@ -369,9 +346,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('select-motorizado', function(message){
-
-		console.log(message);
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -387,9 +361,6 @@ io.on('connection', function(socket) {
 	});	
 
 	socket.on('visit-message', function(message) {
-
-		console.log(message);
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -405,9 +376,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('delete-message', function(message) {
-
-		console.log('delete-message');
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -425,7 +393,6 @@ io.on('connection', function(socket) {
 		var usertype = message['usertype'];
 
 		//var ID = session.get_session(django_id, usertype);
-		console.log('modificar-pedido');
 		if(true){//ID){
 			var pedido = message.pedido;
 			pedido['emit'] = 'modificar-pedido';
@@ -451,7 +418,6 @@ io.on('connection', function(socket) {
 
 		//var ID = session.get_session(django_id, usertype);
 		if(true){//ID){
-			console.log('modificar-motorizado-pedido');
 			var pedido = message.pedido;
 			pedido['emit'] = 'asignar-pedido';
 			pedido.tipo = message.tipo;
@@ -487,8 +453,6 @@ io.on('connection', function(socket) {
 	
 	socket.on('numero-pedido', function(message) {
 
-		//console.log('numero-pedido', message);
-
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
 
@@ -500,8 +464,6 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('set-password', function(message) {
-
-		//console.log('numero-pedido', message);
 
 		var django_id = message['django_id'];
 		var usertype = message['usertype'];
@@ -535,17 +497,14 @@ io.on('connection', function(socket) {
 	})
 
 	socket.on('get-data', function(message) {
-		console.log('get-data', message);
 		get_data(message.cell_id, socket)
 	});
 
 	socket.on('tecno-soat', function(message) {
-		console.log('tecno-soat', message);
 		tecno_soat(message.cell_id, socket)
 	});
 
 	socket.on('motivo-cancelar', function(message) {
-		console.log('motivo-cancelar', message);
 		motivo_cancelar(message.cell_id, socket)
 	});
 });
@@ -592,8 +551,6 @@ app.get('/form', function(req, res){
 });
 
 app.post('/upload',function(req,res){
-
-	console.log("uploading file ");
     upload(req,res,function(err) {
         if(err) {
             return res.end("Error uploading file.");
@@ -621,14 +578,11 @@ app.post('/upload',function(req,res){
 					} 
 				},
 				function (error, response, body) {
-					console.log("status response", response.statusCode);
-					console.log("response", body);
 					if (!error && response.statusCode == 200) {
 						var json = JSON.parse(body);
 						json.imagen = host + "/media/" + json.imagen;
 						listening.add_messages_by_type('web-empresa-' + empresa, [{motorizado: session.get_data(django_id), pedido: json, }], function(django_id, sockets, message){
 							for(var s in sockets){
-								console.log('pedido-entregado', message)
 								sockets[s].emit('pedido-entregado', message);
 							}
 						});
@@ -645,8 +599,6 @@ app.post('/upload',function(req,res){
 });
 
 app.post('/cancel',function(req,res){
-
-	console.log("uploading file ");
     upload(req,res,function(err) {
         if(err) {
             return res.end("Error uploading file.");
@@ -678,8 +630,6 @@ app.post('/cancel',function(req,res){
 					} 
 				},
 				function (error, response, body) {
-					console.log("status response", response.statusCode);
-					console.log("response", body);
 					if (!error && response.statusCode == 200) {
 						return res.end("File is uploaded");
 					}else{
