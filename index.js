@@ -439,6 +439,8 @@ io.on('connection', function(socket) {
 			var identificador2 = message.mot_anterior;
 			listening.add_messages(1, identificador2, [pedido2]);
 
+			console.log('trasladar-pedido', identificador2);
+
 			var sessions = listening.get_sessions(1, identificador2);
 			for(var i in sessions){
 				var session = sessions[i];
