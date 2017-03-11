@@ -8,7 +8,7 @@ var request = require('request');
 var multer  = require('multer');
 var fs = require('fs');
 
-var host =  'http://104.236.33.228:9000'; //'http://192.168.0.103:9000'; //
+var host =  'http://ec2-54-209-162-212.compute-1.amazonaws.com:8000'; //'http://192.168.0.103:9000'; //
 
 var storage =   multer.diskStorage({
   destination: function (req, file, callback) {
