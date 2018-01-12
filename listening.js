@@ -45,10 +45,11 @@ module.exports = {
 	},
 
 	visit_message: function (type, webuser, message_id, session_id, callback){
-		this.listenings[type][webuser]['messages'][message_id]['_visited_'].push(session_id);
-
-		for (var session_id in this.listenings[type][webuser]['sessions']){
-			callback(session_id, this.listenings[type][webuser]['sessions'][session_id], message_id);
+		if (this.listenings[type][webuser]['messages'][message_id]){
+			this.listenings[type][webuser]['messages'][message_id]['_visited_'].push(session_id);
+			for (var session_id in this.listenings[type][webuser]['sessions']){
+				callback(session_id, this.listenings[type][webuser]['sessions'][session_id], message_id);
+			}
 		}
 	},
 
